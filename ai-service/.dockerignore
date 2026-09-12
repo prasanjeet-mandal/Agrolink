@@ -1,0 +1,12 @@
+__pycache__
+*.pyc
+.env
+.git
+Dockerfile
+*.log
+venv
+datasets
+ml-service/data
+ml-service/plots
+ml-service/tests
+ml-service/models
