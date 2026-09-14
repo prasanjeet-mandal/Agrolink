@@ -1,0 +1,166 @@
+[2m4:03:43 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: D:\AgrolinkTest\frontend\src\pages\landing\Landing.jsx: Expected corresponding JSX closing tag for <div>. (445:6)
+
+[0m [90m 443 |[31m           [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 444 |[31m         ) [33m:[31m [36mnull[31m}
+[31m[1m>[22m[31m[90m 445 |[31m       [33m<[31m[33m/[31m[33mheader[31m[33m>[31m
+ [90m     |[31m       [31m[1m^[22m[31m
+ [90m 446 |[31m
+ [90m 447 |[31m       {[90m/* Hero — cover banner */[31m}
+ [90m 448 |[31m       [33m<[31m[33msection[31m className[33m=[31m[32m"relative overflow-hidden border-b"[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mD:/AgrolinkTest/frontend/src/pages/landing/Landing.jsx[39m:445:6
+[33m  443|            </div>
+  444|          ) : null}
+  445|        </header>
+     |        ^
+  446|  
+  447|        {/* Hero — cover banner */}[39m
+      at constructor (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:369:19)
+      at JSXParserMixin.raise (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:6620:19)
+      at JSXParserMixin.jsxParseElementAt (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:4743:16)
+      at JSXParserMixin.jsxParseElementAt (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:4714:32)
+      at JSXParserMixin.jsxParseElementAt (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:4714:32)
+      at JSXParserMixin.jsxParseElement (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:4765:17)
+      at JSXParserMixin.parseExprAtom (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:4775:19)
+      at JSXParserMixin.parseExprSubscripts (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11102:23)
+      at JSXParserMixin.parseUpdate (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11087:21)
+      at JSXParserMixin.parseMaybeUnary (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11067:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10920:61)
+      at JSXParserMixin.parseExprOps (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10925:23)
+      at JSXParserMixin.parseMaybeConditional (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10902:23)
+      at JSXParserMixin.parseMaybeAssign (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10852:21)
+      at D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10821:39
+      at JSXParserMixin.allowInAnd (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12455:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10821:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12522:17)
+      at JSXParserMixin.parseParenAndDistinguishExpression (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11701:28)
+      at JSXParserMixin.parseExprAtom (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11357:23)
+      at JSXParserMixin.parseExprAtom (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:4780:20)
+      at JSXParserMixin.parseExprSubscripts (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11102:23)
+      at JSXParserMixin.parseUpdate (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11087:21)
+      at JSXParserMixin.parseMaybeUnary (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11067:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10920:61)
+      at JSXParserMixin.parseExprOps (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10925:23)
+      at JSXParserMixin.parseMaybeConditional (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10902:23)
+      at JSXParserMixin.parseMaybeAssign (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10852:21)
+      at JSXParserMixin.parseExpressionBase (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10805:23)
+      at D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10801:39
+      at JSXParserMixin.allowInAnd (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12450:16)
+      at JSXParserMixin.parseExpression (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10801:17)
+      at JSXParserMixin.parseReturnStatement (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13171:28)
+      at JSXParserMixin.parseStatementContent (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12827:21)
+      at JSXParserMixin.parseStatementLike (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12796:17)
+      at JSXParserMixin.parseStatementListItem (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12776:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13345:61)
+      at JSXParserMixin.parseBlockBody (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13338:10)
+      at JSXParserMixin.parseBlock (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13326:10)
+      at JSXParserMixin.parseFunctionBody (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12129:24)
+      at JSXParserMixin.parseFunctionBodyAndFinish (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12115:10)
+      at D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13474:12
+      at JSXParserMixin.withSmartMixTopicForbiddingContext (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12432:14)
+      at JSXParserMixin.parseFunction (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13473:10)
+      at JSXParserMixin.parseExportDefaultExpression (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13936:19)
+      at JSXParserMixin.parseExport (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13857:25)
+      at JSXParserMixin.parseStatementContent (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12907:27)
+      at JSXParserMixin.parseStatementLike (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12796:17)
+      at JSXParserMixin.parseModuleItem (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12773:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13345:36)
+[2m4:03:43 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: D:\AgrolinkTest\frontend\src\pages\landing\Landing.jsx: Expected corresponding JSX closing tag for <div>. (445:6)
+
+[0m [90m 443 |[31m           [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 444 |[31m         ) [33m:[31m [36mnull[31m}
+[31m[1m>[22m[31m[90m 445 |[31m       [33m<[31m[33m/[31m[33mheader[31m[33m>[31m
+ [90m     |[31m       [31m[1m^[22m[31m
+ [90m 446 |[31m
+ [90m 447 |[31m       {[90m/* Hero — cover banner */[31m}
+ [90m 448 |[31m       [33m<[31m[33msection[31m className[33m=[31m[32m"relative overflow-hidden border-b"[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mD:/AgrolinkTest/frontend/src/pages/landing/Landing.jsx[39m:445:6
+[33m  443|            </div>
+  444|          ) : null}
+  445|        </header>
+     |        ^
+  446|  
+  447|        {/* Hero — cover banner */}[39m
+      at constructor (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:369:19)
+      at JSXParserMixin.raise (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:6620:19)
+      at JSXParserMixin.jsxParseElementAt (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:4743:16)
+      at JSXParserMixin.jsxParseElementAt (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:4714:32)
+      at JSXParserMixin.jsxParseElementAt (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:4714:32)
+      at JSXParserMixin.jsxParseElement (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:4765:17)
+      at JSXParserMixin.parseExprAtom (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:4775:19)
+      at JSXParserMixin.parseExprSubscripts (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11102:23)
+      at JSXParserMixin.parseUpdate (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11087:21)
+      at JSXParserMixin.parseMaybeUnary (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11067:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10920:61)
+      at JSXParserMixin.parseExprOps (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10925:23)
+      at JSXParserMixin.parseMaybeConditional (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10902:23)
+      at JSXParserMixin.parseMaybeAssign (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10852:21)
+      at D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10821:39
+      at JSXParserMixin.allowInAnd (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12455:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10821:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12522:17)
+      at JSXParserMixin.parseParenAndDistinguishExpression (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11701:28)
+      at JSXParserMixin.parseExprAtom (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11357:23)
+      at JSXParserMixin.parseExprAtom (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:4780:20)
+      at JSXParserMixin.parseExprSubscripts (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11102:23)
+      at JSXParserMixin.parseUpdate (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11087:21)
+      at JSXParserMixin.parseMaybeUnary (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:11067:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10920:61)
+      at JSXParserMixin.parseExprOps (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10925:23)
+      at JSXParserMixin.parseMaybeConditional (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10902:23)
+      at JSXParserMixin.parseMaybeAssign (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10852:21)
+      at JSXParserMixin.parseExpressionBase (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10805:23)
+      at D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10801:39
+      at JSXParserMixin.allowInAnd (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12450:16)
+      at JSXParserMixin.parseExpression (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:10801:17)
+      at JSXParserMixin.parseReturnStatement (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13171:28)
+      at JSXParserMixin.parseStatementContent (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12827:21)
+      at JSXParserMixin.parseStatementLike (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12796:17)
+      at JSXParserMixin.parseStatementListItem (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12776:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13345:61)
+      at JSXParserMixin.parseBlockBody (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13338:10)
+      at JSXParserMixin.parseBlock (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13326:10)
+      at JSXParserMixin.parseFunctionBody (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12129:24)
+      at JSXParserMixin.parseFunctionBodyAndFinish (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12115:10)
+      at D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13474:12
+      at JSXParserMixin.withSmartMixTopicForbiddingContext (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12432:14)
+      at JSXParserMixin.parseFunction (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13473:10)
+      at JSXParserMixin.parseExportDefaultExpression (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13936:19)
+      at JSXParserMixin.parseExport (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13857:25)
+      at JSXParserMixin.parseStatementContent (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12907:27)
+      at JSXParserMixin.parseStatementLike (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12796:17)
+      at JSXParserMixin.parseModuleItem (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:12773:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (D:\AgrolinkTest\frontend\node_modules\@babel\parser\lib\index.js:13345:36)
+[2m6:17:47 pm[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to parse source for import analysis because the content contains invalid JS syntax. If you are using JSX, make sure to name the file with the .jsx or .tsx extension.
+[2m6:17:48 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to parse source for import analysis because the content contains invalid JS syntax. If you are using JSX, make sure to name the file with the .jsx or .tsx extension.[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mD:/AgrolinkTest/frontend/src/mocks/data.js[39m:493:825
+[33m  491|    { en: { q: 'How do I buy fresh produce?', a: 'Open the Marketplace, search for a crop or filter by category, price range or source (Farmer or FPO). Open a product to see photos, grades and the producer, add the quantity you want to the cart, then check out with your delivery address and a payment method.' }, hi: { q: 'मैं ताजी उपज कैसे खरीदूं?', a: 'मार्केटप्लेस खोलें, फसल खोजें या श्रेणी, कीमत या स्रोत के अनुसार फिल्टर करें। उत्पाद खोलकर तस्वीरें और ग्रेड देखें, मात्रा कार्ट में जोड़ें, फिर डिलीवरी पता और भुगतान तरीके से चेकआउट करें।' }, pa: { q: 'ਮੈਂ ਤਾਜ਼ੀ ਉਪਜ ਕਿਵੇਂ ਖਰੀਦਾਂ?', a: 'ਮਾਰਕੀਟ ਖੋਲ੍ਹੋ, ਫ਼ਸਲ ਲੱਭੋ ਜਾਂ ਫਿਲਟਰ ਕਰੋ, ਉਤਪਾਦ ਖੋਲ੍ਹੋ, ਮਾਤਰਾ ਕਾਰਟ ਵਿੱਚ ਪਾਓ ਅਤੇ ਚੈੱਕਆਉਟ ਕਰੋ।' }, mr: { q: 'मी ताजी उपज कशी खरेदी करू?', a: 'मार्केटप्लेस उघडा, पीक शोधा किंवा फिल्टर करा, उत्पादन उघडून कार्टमध्ये घाला आणि चेकआउट करा.' }, ta: { q: 'புதிய பயிரை எப்படி வாங்குவது?', a: 'சந்தையில் தேடி/வடிகட்டி, பொருளைத் திறந்து கார்ட்டில் போட்டு, முகவரி & கட்டணமுறையுடன் செக்-அவுட்.' } },
+  492|    { en: { q: 'How do I search for products?', a: 'Use the search bar in the navbar or the Marketplace page — try a crop like "basmati", "turmeric" or "onion". Combine it with filters for category, price range, producer type and sorting by price, rating or newest.' }, hi: { q: 'उत्पाद कैसे खोजूं?', a: 'नेवबार या मार्केटप्लेस के सर्च बार का उपयोग करें — "बासमती", "हल्दी" या "प्याज" जैसी फसल लिखें। श्रेणी, कीमत, उत्पादक प्रकार और सॉर्टिंग के फिल्टर भी लगाएं।' }, pa: { q: 'ਉਤਪਾਦ ਕਿਵੇਂ ਲੱਭਾਂ?', a: 'ਨੈਵਬਾਰ ਜਾਂ ਮਾਰਕੀਟ ਦੇ ਸਰਚ ਬਾਰ ਵਿੱਚ ਬਾਸਮਤੀ, ਹਲਦੀ ਜਾਂ ਪਿਆਜ਼ ਲਿਖੋ; ਸ਼੍ਰੇਣੀ, ਭਾਅ ਅਤੇ ਪ੍ਰਕਾਰ ਦੇ ਫਿਲਟਰ ਲਗਾਓ।' }, mr: { q: 'उत्पादने कशी शोधू?', a: 'सर्च बारमध्ये पीक लिहा (उदा. बासमती, हळद, कांदा); श्रेणी, दर व प्रकार फिल्टर करा.' }, ta: { q: 'பொருட்களை எப்படி தேடுவது?', a: 'தேடல் பட்டியில் பயிர் பெயர் எழுதி, வகை/விலை/ஆதார வடிகட்டிகள் சேர்க்கவும்.' } },
+  493|    { en: { q: 'How does bulk buying work?', a: 'Product cards show a minimum order quantity set by the producer. For larger or custom requirements, use "Request Quote" on a product page to send a bulk enquiry, or place a cart order for the exact quantity you need.' }, hi: { q: 'थोक खरीद कैसे काम करती है?', a: 'उत्पाद कार्ड पर उत्पादक द्वारा तय न्यूनतम ऑर्डर मात्रा दिखती है। बड़ी या खास मात्रा के लिए product पेज पर "Request Quote" से पूछें, या कार्ट से ऑर्डर करें।' }, pa: { q: 'ਥੋਕ ਖਰੀਦ ਕਿਵੇਂ ਕੰਮ ਕਰਦੀ ਹੈ?', a: 'ਕਾਰਡ \\'ਤੇ ਘੱਟੋ-ਘੱਟ ਆਰਡਰ ਮਾਤਰਾ ਦਿਖਦੀ ਹੈ। ਵੱਡੀ ਮਾਤਰਾ ਲਈ Request Quote ਵਰਤੋ।' }, mr: { q: 'घाऊक खरेदी कशी काम करते?', a: 'कार्डवर किमान ऑर्डर मात्रा दिसते. मोठ्या प्रमाणासाठी Request Quote वापरा.' }, ta: { q: 'மொத்த வாங்குதல் எப்படி?', a: 'குறைந்த ஆர்டர் அளவைக் காட்டும்; பெரிய/தனி தேவைக்கு Request Quote.' } },
+     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ^
+  494|    { en: { q: 'How does the cart work?', a: 'Add items from the marketplace with the quantity you want, then open the cart to review prices and totals per producer. From checkout you choose the delivery address and payment method and place the order.' }, hi: { q: 'कार्ट कैसे काम करती है?', a: 'मार्केटप्लेस से मात्रा के साथ आइटम जोड़ें, फिर कार्ट में कीमतें देखें। चेकआउट से डिलीवरी पता और भुगतान तरीका चुनकर ऑर्डर करें।' }, pa: { q: 'ਕਾਰਟ ਕਿਵੇਂ ਕੰਮ ਕਰਦੀ ਹੈ?', a: 'ਮਾਰਕੀਟ ਤੋਂ ਆਈਟਮ ਕਾਰਟ ਵਿੱਚ ਪਾਓ, ਫਿਰ ਚੈੱਕਆਉਟ ਤੋਂ ਪਤਾ ਅਤੇ ਭੁਗਤਾਨ ਵਿਧੀ ਚੁਣੋ।' }, mr: { q: 'कार्ट कशी काम करते?', a: 'आयटम चा गाडीत टाका, नंतर पत्ता व पेमेंट निवडून ऑर्डर करा.' }, ta: { q: 'கார்ட் எப்படி வேலை செய்கிறது?', a: 'பொருட்களை கார்ட்டில் சேர்க்கலாம்; செக்-அவுட்டில் முகவரி & கட்டணமுறை.' } },
+  495|    { en: { q: 'How do I track my order?', a: 'Open "My Orders" and pick the order to see its live status — placed, confirmed, in-transit, delivered or completed — plus the assigned truck and route on the delivery tracking page. A delivery confirmation step finalises the order.' }, hi: { q: 'मैं अपना ऑर्डर कैसे ट्रैक करूं?', a: '"My Orders" खोलें और लाइव स्टेटस देखें — प्लेस्ड, कन्फर्म्ड, इन-ट्रांज़िट, डिलीवर्ड या कंप्लीटेड — साथ में वाहन और रूट। डिलीवरी कन्फर्मेशन से ऑर्डर पूरा होता है।' }, pa: { q: 'ਮੈਂ ਆਪਣਾ ਆਰਡਰ ਕਿਵੇਂ ਟ੍ਰੈਕ ਕਰਾਂ?', a: 'My Orders ਖੋਲ੍ਹੋ ਅਤੇ ਸਟੇਟਸ ਦੇਖੋ — ਪਲੇਸਡ, ਕਨਫਰਮ, ਇਨ-ਟ੍ਰਾਂਜਿਟ, ਡਿਲੀਵਰ। ਵਾਹਨ ਅਤੇ ਰੂਟ ਵੀ ਦਿਖਦਾ ਹੈ।' }, mr: { q: 'माझा ऑर्डर कसा ट्रॅक करू?', a: 'My Orders उघडून स्टेटस बघा; वाहन व मार्गही दिसतो.' }, ta: { q: 'ஆர்டரை எப்படி கண்காணிப்பது?', a: 'My Orders-ல் நிலையைப் பார்க்கலாம்; லாரி & வழியும் தெரியும்.' } },[39m
+      at TransformPluginContext._formatError (file:///D:/AgrolinkTest/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41)
+      at TransformPluginContext.error (file:///D:/AgrolinkTest/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16)
+      at TransformPluginContext.transform (file:///D:/AgrolinkTest/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64259:14)
+      at async PluginContainer.transform (file:///D:/AgrolinkTest/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18)
+      at async loadAndTransform (file:///D:/AgrolinkTest/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27)
+      at async viteTransformMiddleware (file:///D:/AgrolinkTest/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:62106:24)
+[2m6:20:13 pm[22m [31m[1m[vite][22m[39m Pre-transform error: Failed to parse source for import analysis because the content contains invalid JS syntax. If you are using JSX, make sure to name the file with the .jsx or .tsx extension.
+[2m6:20:13 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to parse source for import analysis because the content contains invalid JS syntax. If you are using JSX, make sure to name the file with the .jsx or .tsx extension.[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mD:/AgrolinkTest/frontend/src/mocks/data.js[39m:509:801
+[33m  507|    { en: { q: 'What payment methods are supported?', a: 'Buyers can pay by UPI, debit or credit card, net banking and, where offered, cash on delivery. Producers are paid by direct settlement or by escrow once delivery is confirmed.' }, hi: { q: 'कौन से भुगतान तरीके सपोर्ट होते हैं?', a: 'खरीदार UPI, डेबिट या क्रेडिट कार्ड, नेट बैंकिंग और जहां उपलब्ध हो वहां कैश ऑन डिलीवरी से दे सकते हैं। उत्पादकों को डायरेक्ट या एस्क्रो से भुगतान मिलता है।' }, pa: { q: 'ਕਿਹੜੀਆਂ ਭੁਗਤਾਨ ਵਿਧੀਆਂ ਸਹਿਯੋਗ ਹਨ?', a: 'ਖਰੀਦਦਾਰ UPI, ਕਾਰਡ, ਨੈੱਟ ਬੈਂਕਿੰਗ ਅਤੇ ਥਾਂ-ਥਾਂ ਕੈਸ਼ ਆਨ ਡਿਲੀਵਰੀ ਨਾਲ ਦੇ ਸਕਦੇ ਹਨ।' }, mr: { q: 'कोणत्या पेमेंट पद्धती आहेत?', a: 'UPI, कार्ड, नेट बँकिंग आणि COD; उत्पादकांना डायरेक्ट किंवा एस्क्रो.' }, ta: { q: 'என்ன கட்டண முறைகள்?', a: 'UPI, அட்டை, நெட் பேங்கிங், COD; உற்பத்தியாளருக்கு நேரடி/எஸ்க்ரோ.' } },
+  508|    { en: { q: 'When will I get paid?', a: 'For direct payments, the amount is settled to your verified account within 1 working day of delivery. For escrow orders, funds are released only once the buyer confirms delivery — locking in both parties.' }, hi: { q: 'मुझे भुगतान कब मिलेगा?', a: 'डायरेक्ट भुगतान डिलीवरी के 1 कार्यदिवस के भीतर वेरिफाइड खाते में पहुंचता है। एस्क्रो ऑर्डर में खरीदार के डिलीवरी कन्फर्म करने पर ही पैसा रिलीज़ होता है।' }, pa: { q: 'ਮੈਨੂੰ ਭੁਗਤਾਨ ਕਦੋਂ ਮਿਲੇਗਾ?', a: 'ਡਿਲੀਵਰੀ ਤੋਂ 1 ਕੰਮਕਾਜੀ ਦਿਨ ਅੰਦਰ ਖਾਤੇ ਵਿੱਚ। ਐਸਕਰੋ ਵਿੱਚ ਕਨਫਰਮੇਸ਼ਨ ਤੋਂ ਬਾਅਦ।' }, mr: { q: 'मला पैसे कधी मिळतील?', a: 'डायरेक्ट - डिलिव्हरीनंतर 1 कामाच्या दिवसात; एस्क्रो - कन्फर्मेशननंतरच.' }, ta: { q: 'எப்போது பணம் கிடைக்கும்?', a: 'நேரடி - டெலிவரி முடிந்து 1 வேலைநாளில்; எஸ்க்ரோ - உறுதிக்குப் பின்.' } },
+  509|    { en: { q: 'What is escrow?', a: 'Escrow holds the buyer payment in a protected account while the order is in transit. When delivery is confirmed by the buyer, the funds are released to the producer. It protects the buyer against no-show and the producer against non-payment.' }, hi: { q: 'एस्क्रो क्या है?', a: 'एस्क्रो में खरीदार का भुगतान ऑर्डर परिवहन में रहने तक एक सुरक्षित खाते में रहता है। डिलीवरी कन्फर्म होने पर पैसा उत्पादक को मिलता है — दोनों पक्ष सुरक्षित।' }, pa: { q: 'ਐਸਕਰੋ ਕੀ ਹੈ?', a: 'ਭੁਗਤਾਨ ਸੁਰੱਖਿਅਤ ਖਾਤੇ ਵਿੱਚ ਰਹਿੰਦਾ ਹੈ; ਡਿਲੀਵਰੀ ਕਨਫਰਮ ਹੋਣ \\'ਤੇ ਉਤਪਾਦਕ ਨੂੰ ਮਿਲਦਾ ਹੈ।' }, mr: { q: 'एस्क्रो म्हणजे काय?', a: 'पेमेंट सुरक्षित खात्यात राहते; डिलिव्हरी कन्फर्म झाल्यावर उत्पादकाला.' }, ta: { q: 'எஸ்க்ரோ என்றால் என்ன?', a: 'பணம் பாதுகாப்பு கணக்கில்; டெலிவரி உறுதியானதும் வெளியீடு.' } },
+     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ^
+  510|    { en: { q: 'How does FPO payment settlement work?', a: 'An FPO\'s payment for pooled stock is settled to the FPO account, which then distributes shares to member farmers per their contribution. Transactions and payouts appear in the FPO payments history.' }, hi: { q: 'FPO भुगतान सेटलमेंट कैसे काम करता है?', a: 'पूल किए गए स्टॉक का भुगतान FPO के खाते में जाता है, फिर सदस्य किसानों के योगदान के अनुसार बांटा जाता है। लेनदेन FPO payments history में दिखता है।' }, pa: { q: 'FPO ਭੁਗਤਾਨ ਸੈਟਲਮੈਂਟ ਕਿਵੇਂ ਕੰਮ ਕਰਦਾ ਹੈ?', a: 'ਪੂਲ ਸਟਾਕ ਦਾ ਭੁਗਤਾਨ FPO ਖਾਤੇ ਵਿੱਚ ਜਾਂਦਾ ਹੈ, ਫਿਰ ਮੈਂਬਰ ਕਿਸਾਨਾਂ ਵਿੱਚ ਵੰਡਿਆ ਜਾਂਦਾ ਹੈ।' }, mr: { q: 'FPO पेमेंट सेटलमेंट कसे काम करते?', a: 'पूल स्टॉकचे पेमेंट FPO खात्यात जाते, मग सदस्यांना वाटप.' }, ta: { q: 'FPO கட்டண தீர்வு எப்படி?', a: 'திரட்டல் பணம் FPO கணக்கில்; பங்காளிகளுக்குப் பங்கிடப்படுகிறது.' } },
+  511|  [39m
+      at TransformPluginContext._formatError (file:///D:/AgrolinkTest/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41)
+      at TransformPluginContext.error (file:///D:/AgrolinkTest/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16)
+      at TransformPluginContext.transform (file:///D:/AgrolinkTest/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64259:14)
+      at async PluginContainer.transform (file:///D:/AgrolinkTest/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18)
+      at async loadAndTransform (file:///D:/AgrolinkTest/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27)
+      at async viteTransformMiddleware (file:///D:/AgrolinkTest/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:62106:24)
