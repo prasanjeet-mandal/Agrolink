@@ -58,3 +58,9 @@ ai-service/agromarket-ml/models/
 # Keep directory structure
 !ai-service/agromarket-ml/data/.gitkeep
 !ai-service/agromarket-ml/models/.gitkeep
+
+# --- Large AI/ML datasets -----------------------------------------------------
+ai-service/agromarket-ml/datasets/
+
+# --- Build output -------------------------------------------------------------
+backend/target/
