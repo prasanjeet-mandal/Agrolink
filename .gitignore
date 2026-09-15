@@ -13,6 +13,7 @@ application-secret.properties
 *.key
 *.pfx
 !.env.example
+.claude
 
 # --- Logs ---------------------------------------------------------------------
 *.log
