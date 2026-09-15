@@ -28,7 +28,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableMethodSecurity
-@EnableConfigurationProperties({JwtConfig.class, OtpConfig.class, TwilioProperties.class})
+@EnableConfigurationProperties({JwtConfig.class, OtpConfig.class, TwilioProperties.class, GoogleConfig.class})
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -92,6 +92,8 @@ public class SecurityConfig {
 .requestMatchers(
                         "/api/auth/login",
                         "/api/auth/register",
+                        "/api/auth/google",
+                        "/api/auth/google/complete",
                         "/api/auth/otp/**",
                         "/api/auth/forgot-password",
                         "/api/auth/reset-password",

@@ -2,6 +2,8 @@ export const API = {
   AUTH: {
     LOGIN: '/api/auth/login',
     REGISTER: '/api/auth/register',
+    GOOGLE: '/api/auth/google',
+    GOOGLE_SIGNUP: '/api/auth/google/complete',
     REFRESH: '/api/auth/refresh',
     FORGOT_PASSWORD: '/api/auth/forgot-password',
     RESET_PASSWORD: '/api/auth/reset-password',

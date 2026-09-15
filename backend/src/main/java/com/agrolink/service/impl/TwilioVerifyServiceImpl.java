@@ -1,5 +1,6 @@
 package com.agrolink.service.impl;
 
+import com.agrolink.config.OtpConfig;
 import com.agrolink.config.TwilioProperties;
 import com.agrolink.exception.BadRequestException;
 import com.agrolink.service.TwilioVerifyService;
@@ -23,9 +24,10 @@ public class TwilioVerifyServiceImpl implements TwilioVerifyService {
 
     private volatile boolean initialized;
 
-    public TwilioVerifyServiceImpl(TwilioProperties properties) {
+    public TwilioVerifyServiceImpl(TwilioProperties properties, OtpConfig config) {
         this.properties = properties;
-        this.configured = properties.isConfigured();
+        this.configured = "twilio".equalsIgnoreCase(config.getProvider())
+                && properties.isConfigured();
     }
 
     @Override

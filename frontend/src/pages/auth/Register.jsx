@@ -11,6 +11,7 @@ import { authService } from '@/services/authService';
 import { validateForm, required, isEmail, validatePhoneE164, validatePassword, validateConfirmPassword, getPasswordStrength } from '@/utils/validation';
 import { ROLES, ROLE_ROUTES } from '@/constants/roles';
 import { cn } from '@/utils/cn';
+import GoogleSignIn from '@/components/auth/GoogleSignIn';
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 30;
@@ -262,6 +263,14 @@ export default function Register() {
                 {errors.form}
               </p>
             ) : null}
+
+            <GoogleSignIn mode="register" onError={(msg) => setErrors((e) => ({ ...e, form: msg }))} />
+
+            <div className="relative flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+              <span className="h-px flex-1 bg-muted" />
+              <span>or continue with email</span>
+              <span className="h-px flex-1 bg-muted" />
+            </div>
 
             <div className="grid gap-2">
               <div className="flex items-center justify-between">

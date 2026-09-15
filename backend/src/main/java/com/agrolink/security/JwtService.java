@@ -21,7 +21,15 @@ public class JwtService {
 
     private static final String PURPOSE_REGISTER = "REGISTER";
 
+    private static final String PURPOSE_GOOGLE_SIGNUP = "GOOGLE_SIGNUP";
+
     private static final String PHONE_CLAIM = "phone";
+
+    private static final String GOOGLE_ID_CLAIM = "googleId";
+
+    private static final String NAME_CLAIM = "name";
+
+    private static final String EMAIL_VERIFIED_CLAIM = "emailVerified";
 
     private final JwtConfig jwtConfig;
 
@@ -99,6 +107,62 @@ public class JwtService {
     }
 
     public record RegistrationClaims(String email, String phone) {
+    }
+
+    public String generateGoogleSignupTicket(
+            String email,
+            String googleId,
+            String name,
+            boolean emailVerified
+    ) {
+        Date now = new Date();
+
+        Date expiration = new Date(
+                now.getTime() + jwtConfig.getRegistrationExpiration()
+        );
+
+        return Jwts.builder()
+                .subject(email)
+                .claim(PURPOSE_CLAIM, PURPOSE_GOOGLE_SIGNUP)
+                .claim(GOOGLE_ID_CLAIM, googleId)
+                .claim(NAME_CLAIM, name == null ? "" : name)
+                .claim(EMAIL_VERIFIED_CLAIM, emailVerified)
+                .issuedAt(now)
+                .expiration(expiration)
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public GoogleSignupClaims verifyGoogleSignupTicket(String token) {
+
+        if (token == null || token.isBlank()) {
+            throw new BadRequestException(
+                    "Google sign-up session is missing or expired. Please try again"
+            );
+        }
+
+        Claims claims = extractAllClaims(token);
+
+        if (!PURPOSE_GOOGLE_SIGNUP.equals(claims.get(PURPOSE_CLAIM, String.class))) {
+            throw new BadRequestException(
+                    "Invalid Google sign-up session"
+            );
+        }
+
+        return new GoogleSignupClaims(
+                claims.getSubject(),
+                claims.get(GOOGLE_ID_CLAIM, String.class),
+                claims.get(NAME_CLAIM, String.class),
+                claims.get(EMAIL_VERIFIED_CLAIM, Boolean.class)
+        );
+    }
+
+    public record GoogleSignupClaims(
+            String email,
+            String googleId,
+            String name,
+            boolean emailVerified
+    ) {
     }
 
     public boolean isTokenValid(

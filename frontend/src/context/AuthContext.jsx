@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { authService } from '@/services/authService';
 import { ROLES } from '@/constants/roles';
+import { toSession } from '@/services/normalize';
 
 const AuthContext = React.createContext(null);
 
@@ -28,6 +29,38 @@ export function AuthProvider({ children }) {
       setLoading(true);
       try {
         const session = await authService.login(credentials);
+        persist(session);
+        return session.user;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [persist]
+  );
+
+  const googleLogin = React.useCallback(
+    async (code) => {
+      setLoading(true);
+      try {
+        const res = await authService.googleLogin(code);
+        if (res.needsRole) {
+          return { needsRole: true, signupTicket: res.signupTicket, name: res.fullName, email: res.email };
+        }
+        const session = toSession(res);
+        persist(session);
+        return session.user;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [persist]
+  );
+
+  const googleSignupComplete = React.useCallback(
+    async (signupTicket, { role, vehicleNumber, drivingLicense } = {}) => {
+      setLoading(true);
+      try {
+        const session = await authService.googleSignupComplete(signupTicket, { role, vehicleNumber, drivingLicense });
         persist(session);
         return session.user;
       } finally {
@@ -66,8 +99,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const value = React.useMemo(
-    () => ({ user, loading, login, register, logout, refreshProfile }),
-    [user, loading, login, register, logout, refreshProfile]
+    () => ({ user, loading, login, googleLogin, googleSignupComplete, register, logout, refreshProfile }),
+    [user, loading, login, googleLogin, googleSignupComplete, register, logout, refreshProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

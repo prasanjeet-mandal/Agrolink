@@ -1,5 +1,6 @@
 package com.agrolink.entity;
 
+import com.agrolink.enums.AuthProvider;
 import com.agrolink.enums.Role;
 import jakarta.persistence.*;
 
@@ -32,6 +33,16 @@ public class User extends BaseEntity {
 
     @Column(name = "phone_verified", nullable = false)
     private boolean phoneVerified = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider", nullable = false)
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
+    @Column(name = "google_id")
+    private String googleId;
+
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
 
     public User() {
     }
@@ -98,5 +109,29 @@ public class User extends BaseEntity {
 
     public void setPhoneVerified(boolean phoneVerified) {
         this.phoneVerified = phoneVerified;
+    }
+
+    public AuthProvider getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(AuthProvider authProvider) {
+        this.authProvider = authProvider;
+    }
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 }

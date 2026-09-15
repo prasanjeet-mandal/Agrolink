@@ -59,6 +59,30 @@ Key configuration (environment variables, see `backend/src/main/resources/applic
 | `SERVER_PORT` | `8080` | Server port |
 | `PAYMENT_GATEWAY`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | empty | Payment gateway credentials |
 
+## SMS OTP via Twilio Verify
+
+Registration is gated by a phone OTP. The backend uses **Twilio Verify V2**: Twilio generates, delivers, expires and checks the code — the app never generates or stores OTPs, and no OTP column/table exists.
+
+| Variable | Purpose |
+| --- | --- |
+| `TWILIO_ACCOUNT_SID` | Account SID (`AC…`) |
+| `TWILIO_API_KEY_SID` | API key SID (`SK…`) — Console → Account → API keys & tokens |
+| `TWILIO_API_KEY_SECRET` | API key secret (shown once when created) |
+| `TWILIO_VERIFY_SERVICE_SID` | Verify Service SID (`VA…`) — Console → Verify → Services |
+| `TWILIO_VERIFY_CHANNEL` | Delivery channel, default `sms` |
+
+Endpoints:
+
+- `POST /api/auth/otp/send` → `{ email, phone }` (phone in **E.164**, e.g. `+919876543210`)
+- `POST /api/auth/otp/verify` → `{ requestId, phone, code, email }` → returns a short-lived `registrationToken`
+- `POST /api/auth/register` → requires `otpToken` + `phone`; the token is bound to both the email and the phone
+
+**Setup:** 1) create a Twilio Verify Service (SMS), 2) create an API Key (SID+Secret) scoped to your project, 3) put the four values in `.env` (never commit them — `.env` is git-ignored).
+
+**Dev fallback:** when any of the four values is empty, Twilio is bypassed and the fixed `OTP_DEV_CODE` (default `123456`) is accepted and shown in the UI. This lets the frontend keep working without credentials. With Twilio configured, the real code is **never** exposed in any response.
+
+**Twilio trial accounts** can only send to verified phone numbers; sending to an unverified number returns a "Unable to send the verification code" error. Mock-based tests (`OtpServiceImplTest`) cover send/verify/expiry/attempt-limit/rate-limit paths without sending real SMS.
+
 ## Run the AI service
 
 ```bash

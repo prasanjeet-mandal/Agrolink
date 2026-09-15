@@ -2,6 +2,9 @@ package com.agrolink.controller;
 
 
 import com.agrolink.dto.auth.AuthResponse;
+import com.agrolink.dto.auth.GoogleAuthResponse;
+import com.agrolink.dto.auth.GoogleLoginRequest;
+import com.agrolink.dto.auth.GoogleSignupRequest;
 import com.agrolink.dto.auth.LoginRequest;
 import com.agrolink.dto.auth.OtpSendRequest;
 import com.agrolink.dto.auth.OtpSendResponse;
@@ -10,6 +13,7 @@ import com.agrolink.dto.auth.OtpVerifyResponse;
 import com.agrolink.dto.auth.RegisterRequest;
 import com.agrolink.dto.user.UserResponse;
 import com.agrolink.service.AuthService;
+import com.agrolink.service.GoogleAuthService;
 
 import jakarta.validation.Valid;
 
@@ -25,9 +29,14 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final GoogleAuthService googleAuthService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(
+            AuthService authService,
+            GoogleAuthService googleAuthService
+    ) {
         this.authService = authService;
+        this.googleAuthService = googleAuthService;
     }
 
     @PostMapping("/register")
@@ -47,6 +56,26 @@ public class AuthController {
 
         return ResponseEntity.ok(
                 authService.login(request)
+        );
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<GoogleAuthResponse> googleLogin(
+            @Valid @RequestBody GoogleLoginRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                googleAuthService.googleLogin(request)
+        );
+    }
+
+    @PostMapping("/google/complete")
+    public ResponseEntity<GoogleAuthResponse> googleSignupComplete(
+            @Valid @RequestBody GoogleSignupRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                googleAuthService.completeSignup(request)
         );
     }
 

@@ -25,6 +25,20 @@ export const authService = {
     return toSession(res);
   },
 
+  async googleLogin(code) {
+    return httpPost(API.AUTH.GOOGLE, { code });
+  },
+
+  async googleSignupComplete(signupTicket, { role, vehicleNumber, drivingLicense } = {}) {
+    const res = await httpPost(API.AUTH.GOOGLE_SIGNUP, {
+      signupTicket,
+      role: role ?? 'CONSUMER',
+      vehicleNumber,
+      drivingLicense,
+    });
+    return toSession(res);
+  },
+
   async sendRegistrationOtp(payload) {
     return httpPost(API.AUTH.SEND_OTP, { email: payload.email, phone: payload.phone });
   },

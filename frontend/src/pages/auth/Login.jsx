@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FormField } from '@/components/forms';
 import { validateForm, required, isEmail, isPhone } from '@/utils/validation';
 import { ROLES, ROLE_ROUTES } from '@/constants/roles';
+import GoogleSignIn from '@/components/auth/GoogleSignIn';
 
 const SAMPLE_ACCOUNTS = [
   { label: 'Consumer', role: ROLES.CONSUMER, user: 'meera@example.com', route: ROLE_ROUTES[ROLES.CONSUMER], icon: Store },
@@ -147,6 +148,14 @@ export default function Login() {
             {submitting ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
+
+        <div className="relative flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+          <span className="h-px flex-1 bg-muted" />
+          <span>or</span>
+          <span className="h-px flex-1 bg-muted" />
+        </div>
+
+        <GoogleSignIn mode="login" onError={(msg) => setErrors((e) => ({ ...e, form: msg }))} />
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
