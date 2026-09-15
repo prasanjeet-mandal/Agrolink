@@ -17,6 +17,10 @@ public record DirectDeliveryAddressRequest(
 
         String pincode,
 
-        String addressType
+        String addressType,
+
+        Double latitude,
+
+        Double longitude
 ) {
 }

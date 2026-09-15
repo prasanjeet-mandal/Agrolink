@@ -16,12 +16,14 @@ export function AuthProvider({ children }) {
       return null;
     }
   });
+  const [token, setToken] = React.useState(() => localStorage.getItem(STORAGE_TOKEN));
   const [loading, setLoading] = React.useState(false);
 
   const persist = React.useCallback((session) => {
     localStorage.setItem(STORAGE_USER, JSON.stringify({ user: session.user }));
     localStorage.setItem(STORAGE_TOKEN, session.token);
     setUser(session.user);
+    setToken(session.token);
   }, []);
 
   const login = React.useCallback(
@@ -88,6 +90,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(STORAGE_USER);
     localStorage.removeItem(STORAGE_TOKEN);
     setUser(null);
+    setToken(null);
   }, []);
 
   const refreshProfile = React.useCallback(async () => {
@@ -99,8 +102,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const value = React.useMemo(
-    () => ({ user, loading, login, googleLogin, googleSignupComplete, register, logout, refreshProfile }),
-    [user, loading, login, googleLogin, googleSignupComplete, register, logout, refreshProfile]
+    () => ({ user, token, loading, login, googleLogin, googleSignupComplete, register, logout, refreshProfile }),
+    [user, token, loading, login, googleLogin, googleSignupComplete, register, logout, refreshProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

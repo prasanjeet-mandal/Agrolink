@@ -30,6 +30,10 @@ public class Address {
 
     private String addressType;
 
+    private Double latitude;
+
+    private Double longitude;
+
     public Address() {
     }
 
@@ -99,5 +103,21 @@ public class Address {
 
     public void setAddressType(String addressType) {
         this.addressType = addressType;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 }

@@ -24,18 +24,26 @@ export default function DeliveryPartnerDashboard() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
 
-  const load = React.useCallback(() => {
-    setLoading(true);
-    setError(null);
+  const load = React.useCallback((silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     logisticsService
       .getMine()
       .then(setDeliveries)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+      .catch((e) => {
+        if (!silent) setError(e.message);
+      })
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
   }, []);
 
   React.useEffect(() => {
     load();
+    const t = setInterval(() => load(true), 15000);
+    return () => clearInterval(t);
   }, [load]);
 
   if (loading) return <Loading label="Loading assigned deliveries…" />;

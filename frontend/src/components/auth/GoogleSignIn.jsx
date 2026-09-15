@@ -69,6 +69,7 @@ export default function GoogleSignIn({
   mode = 'login',
   className,
   disabled,
+  defaultRole,
   onError,
 }) {
   const { googleLogin, googleSignupComplete } = useAuth();
@@ -111,6 +112,23 @@ export default function GoogleSignIn({
     try {
       const result = await googleLogin(code);
       if (result && result.needsRole) {
+        const role = defaultRole && defaultRole !== ROLES.DELIVERY_PARTNER ? defaultRole : null;
+        if (role) {
+          try {
+            const user = await googleSignupComplete(result.signupTicket, { role });
+            toast({
+              title: 'Welcome',
+              description: `Signed in as ${user?.name ?? result?.email ?? 'your account'}`,
+              variant: 'success',
+            });
+            navigate(ROLE_ROUTES[user?.role] ?? '/', { replace: true });
+          } catch (err) {
+            const message = err?.message || 'Unable to complete sign-up';
+            setError(message);
+            onError?.(message);
+          }
+          return;
+        }
         setSignupTicket(result.signupTicket);
         setRolePickerVisible(true);
         setError('');
@@ -129,7 +147,7 @@ export default function GoogleSignIn({
     } finally {
       setSubmitting(false);
     }
-  }, [googleLogin, navigate, toast, onError]);
+  }, [googleLogin, googleSignupComplete, navigate, toast, onError, defaultRole]);
 
   const completeSignup = React.useCallback(async (e) => {
     e.preventDefault();

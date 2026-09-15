@@ -30,6 +30,7 @@ export default function Login() {
   const paramRole = searchParams.get('role')?.toUpperCase() ?? '';
   const validRoles = Object.values(ROLES);
   const roleLocked = validRoles.includes(paramRole);
+  const googleDefaultRole = roleLocked ? paramRole : ROLES.CONSUMER;
 
   const [values, setValues] = React.useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = React.useState(false);
@@ -139,7 +140,7 @@ export default function Login() {
           <span className="h-px flex-1 bg-muted" />
         </div>
 
-        <GoogleSignIn mode="login" onError={(msg) => setErrors((e) => ({ ...e, form: msg }))} />
+        <GoogleSignIn mode="login" defaultRole={googleDefaultRole} onError={(msg) => setErrors((e) => ({ ...e, form: msg }))} />
 
         <p className="text-center text-sm text-muted-foreground">
           New to Agrolink?{' '}

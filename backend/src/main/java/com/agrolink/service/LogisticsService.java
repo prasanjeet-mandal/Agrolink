@@ -8,15 +8,15 @@ public interface LogisticsService {
 
     LogisticsResponse create(String email, Long orderId);
 
-    LogisticsResponse assign(Long id, AssignDeliveryRequest r);
+    LogisticsResponse assign(String email, Long id, AssignDeliveryRequest r);
 
-    LogisticsResponse status(Long id, LogisticsStatusRequest r);
+    LogisticsResponse status(String email, Long id, LogisticsStatusRequest r);
 
     List<LogisticsResponse> mine(String email);
 
     LogisticsResponse route(Long id);
 
-    LogisticsResponse location(Long id, UpdateLocationRequest r);
+    LogisticsResponse location(String email, Long id, UpdateLocationRequest r);
 
     List<ShipmentResponse> shipments();
 

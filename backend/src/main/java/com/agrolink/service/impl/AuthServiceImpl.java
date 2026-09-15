@@ -11,6 +11,7 @@ import com.agrolink.dto.auth.RegisterRequest;
 import com.agrolink.dto.user.UserResponse;
 import com.agrolink.entity.DeliveryPartnerProfile;
 import com.agrolink.entity.User;
+import com.agrolink.enums.Role;
 import com.agrolink.exception.BadRequestException;
 import com.agrolink.repository.DeliveryPartnerProfileRepository;
 import com.agrolink.repository.UserRepository;
@@ -95,6 +96,8 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
+        Role role = request.role() == BUYER ? CONSUMER : request.role();
+
         if (otpConfig.isRequireVerify()) {
 
             JwtService.RegistrationClaims claims;
@@ -140,13 +143,13 @@ public class AuthServiceImpl implements AuthService {
                 )
         );
 
-        user.setRole(request.role());
+        user.setRole(role);
         user.setEnabled(true);
 
         User savedUser =
                 userRepository.save(user);
 
-        if (request.role() == DELIVERY_PARTNER) {
+        if (role == DELIVERY_PARTNER) {
 
             DeliveryPartnerProfile profile =
                     new DeliveryPartnerProfile();

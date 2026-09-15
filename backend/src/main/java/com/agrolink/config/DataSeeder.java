@@ -5,24 +5,14 @@ import com.agrolink.entity.Category;
 import com.agrolink.entity.DeliveryPartnerProfile;
 import com.agrolink.entity.Farmer;
 import com.agrolink.entity.Fpo;
-import com.agrolink.entity.Logistics;
-import com.agrolink.entity.Order;
-import com.agrolink.entity.OrderItem;
-import com.agrolink.entity.Product;
 import com.agrolink.entity.User;
 import com.agrolink.entity.Vehicle;
-import com.agrolink.enums.LogisticsStatus;
-import com.agrolink.enums.OrderStatus;
-import com.agrolink.enums.ProductStatus;
 import com.agrolink.enums.Role;
 import com.agrolink.repository.AddressRepository;
 import com.agrolink.repository.CategoryRepository;
 import com.agrolink.repository.DeliveryPartnerProfileRepository;
 import com.agrolink.repository.FarmerRepository;
 import com.agrolink.repository.FpoRepository;
-import com.agrolink.repository.LogisticsRepository;
-import com.agrolink.repository.OrderRepository;
-import com.agrolink.repository.ProductRepository;
 import com.agrolink.repository.UserRepository;
 import com.agrolink.repository.VehicleRepository;
 
@@ -30,7 +20,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -39,38 +28,29 @@ public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository users;
     private final CategoryRepository categories;
-    private final ProductRepository products;
     private final AddressRepository addresses;
     private final FarmerRepository farmers;
     private final FpoRepository fpos;
     private final VehicleRepository vehicles;
-    private final OrderRepository orders;
-    private final LogisticsRepository logistics;
     private final DeliveryPartnerProfileRepository deliveryPartnerProfiles;
     private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(
             UserRepository users,
             CategoryRepository categories,
-            ProductRepository products,
             AddressRepository addresses,
             FarmerRepository farmers,
             FpoRepository fpos,
             VehicleRepository vehicles,
-            OrderRepository orders,
-            LogisticsRepository logistics,
             DeliveryPartnerProfileRepository deliveryPartnerProfiles,
             PasswordEncoder passwordEncoder
     ) {
         this.users = users;
         this.categories = categories;
-        this.products = products;
         this.addresses = addresses;
         this.farmers = farmers;
         this.fpos = fpos;
         this.vehicles = vehicles;
-        this.orders = orders;
-        this.logistics = logistics;
         this.deliveryPartnerProfiles = deliveryPartnerProfiles;
         this.passwordEncoder = passwordEncoder;
     }
@@ -84,8 +64,6 @@ public class DataSeeder implements CommandLineRunner {
             Map<String, User> byEmail = seedUsers();
 
             seedAddresses(byEmail);
-
-            seedProducts(byEmail);
 
             System.out.println(
                     "[AGROLINK-SEED] demo data created — "
@@ -105,7 +83,6 @@ public class DataSeeder implements CommandLineRunner {
 
         seedAdmin();
 
-        seedLogisticsDemo();
     }
 
     private void seedVehicles() {
@@ -155,44 +132,6 @@ public class DataSeeder implements CommandLineRunner {
 
         return users.findByEmail(email).orElseGet(() ->
                 users.save(new User(name, email, passwordEncoder.encode("secret"), role)));
-    }
-
-    private void seedLogisticsDemo() {
-
-        if (logistics.count() > 0) {
-            return;
-        }
-
-        User buyer = users.findByEmail("meera@example.com").orElse(null);
-        Product product = products.findAll().stream().findFirst().orElse(null);
-        Address address = addresses.findAll().stream().findFirst().orElse(null);
-
-        if (buyer == null || product == null || address == null) {
-            return;
-        }
-
-        Order order = new Order();
-        order.setBuyer(buyer);
-        order.setShippingAddress(address);
-        order.setStatus(OrderStatus.PLACED);
-        order.setTotalAmount(product.getPrice().multiply(BigDecimal.valueOf(2)));
-
-        OrderItem item = new OrderItem();
-        item.setOrder(order);
-        item.setProduct(product);
-        item.setQuantity(2.0);
-        item.setUnitPrice(product.getPrice());
-        item.setLineTotal(product.getPrice().multiply(BigDecimal.valueOf(2)));
-        order.setItems(new java.util.ArrayList<>(java.util.List.of(item)));
-
-        Order savedOrder = orders.save(order);
-
-        Logistics entry = new Logistics();
-        entry.setOrder(savedOrder);
-        entry.setStatus(LogisticsStatus.CREATED);
-        entry.setPickupLocation(product.getLocation());
-        entry.setDeliveryLocation(address.getCity() + ", " + address.getState());
-        logistics.save(entry);
     }
 
     private void seedProducerProfiles() {
@@ -327,46 +266,5 @@ public class DataSeeder implements CommandLineRunner {
         a.setPincode(pincode);
         a.setAddressType(type);
         addresses.save(a);
-    }
-
-    private void seedProducts(Map<String, User> byEmail) {
-
-        User fpoPunjab = byEmail.get("fpo.punjab@example.com");
-        User fpoSahyadri = byEmail.get("fpo.sahyadri@example.com");
-        User harpreet = byEmail.get("harpreet@example.com");
-        User ramesh = byEmail.get("ramesh@example.com");
-        User lakshmi = byEmail.get("lakshmi@example.com");
-
-        Object[][] rows = {
-                { "Basmati Rice (Premium)", fpoPunjab, "Grains & Pulses", new BigDecimal("145"), "kg", 1200.0, "Aged premium Basmati, single-polish, long grain.", "Ludhiana, Punjab" },
-                { "Mustard Oil (Kachi Ghani)", fpoPunjab, "Oilseeds", new BigDecimal("210"), "litre", 400.0, "First-pressure cold-pressed mustard oil from yellow sarson seeds.", "Ludhiana, Punjab" },
-                { "Sharbati Wheat", fpoPunjab, "Grains & Pulses", new BigDecimal("3200"), "quintal", 320.0, "Stone-ground quality sharbati wheat, sun-dried and double cleaned.", "Ludhiana, Punjab" },
-                { "Fresh Potatoes", ramesh, "Vegetables", new BigDecimal("28"), "kg", 8000.0, "Freshly harvested firm potatoes, graded and washed.", "Kanpur, Uttar Pradesh" },
-                { "Organic Wheat Flour (Atta)", harpreet, "Grains & Pulses", new BigDecimal("62"), "kg", 1500.0, "Whole-wheat flour milled from certified organic wheat.", "Ludhiana, Punjab" },
-                { "Tomatoes (Ripe)", fpoSahyadri, "Vegetables", new BigDecimal("34"), "kg", 5000.0, "Natural ripened tomatoes from co-op member farms.", "Pune, Maharashtra" },
-                { "Thompson Seedless Grapes", fpoSahyadri, "Fruits", new BigDecimal("90"), "kg", 1200.0, "Crisp green seedless grapes, cold-chain packed.", "Pune, Maharashtra" },
-                { "Onions (Red)", fpoSahyadri, "Vegetables", new BigDecimal("22"), "kg", 9000.0, "High-tolerance red onions with good shelf life.", "Pune, Maharashtra" },
-                { "Organic Turmeric Powder", lakshmi, "Spices", new BigDecimal("380"), "kg", 160.0, "High-curcumin Salem turmeric, steamed-cured.", "Bengaluru Rural, Karnataka" },
-                { "Ragi (Finger Millet)", lakshmi, "Grains & Pulses", new BigDecimal("48"), "kg", 600.0, "Protein-rich finger millet, gluten-free.", "Bengaluru Rural, Karnataka" },
-                { "Cherry Tomatoes", lakshmi, "Vegetables", new BigDecimal("58"), "kg", 350.0, "Sweet cherry tomatoes picked at peak ripeness.", "Bengaluru Rural, Karnataka" },
-                { "Yellow Mustard Seeds", harpreet, "Oilseeds", new BigDecimal("84"), "kg", 900.0, "High-oil-content mustard seeds cleaned and bagged.", "Ludhiana, Punjab" },
-                { "Fresh Cow Milk (Bulk)", fpoSahyadri, "Dairy", new BigDecimal("46"), "litre", 500.0, "Twice-daily chilled bulk milk from co-op dairy network.", "Pune, Maharashtra" },
-                { "Groundnut Kernels", harpreet, "Oilseeds", new BigDecimal("118"), "kg", 700.0, "Hand-sorted bold groundnut kernels for oil extraction.", "Ludhiana, Punjab" },
-                { "Turmeric Finger (Raw)", lakshmi, "Spices", new BigDecimal("92"), "kg", 800.0, "Dried turmeric fingers for polishing or grinding.", "Bengaluru Rural, Karnataka" },
-        };
-
-        for (Object[] row : rows) {
-            Product p = new Product();
-            p.setName((String) row[0]);
-            p.setSeller((User) row[1]);
-            p.setCategory(categories.findByNameIgnoreCase((String) row[2]).orElseThrow());
-            p.setPrice((BigDecimal) row[3]);
-            p.setUnit((String) row[4]);
-            p.setAvailableQuantity((Double) row[5]);
-            p.setDescription((String) row[6]);
-            p.setLocation((String) row[7]);
-            p.setStatus(ProductStatus.ACTIVE);
-            products.save(p);
-        }
     }
 }

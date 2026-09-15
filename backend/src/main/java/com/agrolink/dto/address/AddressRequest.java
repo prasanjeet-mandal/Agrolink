@@ -20,6 +20,10 @@ public record AddressRequest(
         @NotBlank
         String pincode,
 
-        String addressType
+        String addressType,
+
+        Double latitude,
+
+        Double longitude
 ) {
 }

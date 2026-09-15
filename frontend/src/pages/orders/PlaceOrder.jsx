@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FormField } from '@/components/forms';
 import { formatPrice } from '@/utils/formatPrice';
 import { validateForm, required } from '@/utils/validation';
+import { detectLocation } from '@/utils/geo';
 
 const PAYMENT_METHODS = [
   { value: 'UPI', label: 'UPI (GPay / PhonePe)' },
@@ -34,6 +35,34 @@ export default function PlaceOrder() {
   const [submitting, setSubmitting] = React.useState(false);
   const [values, setValues] = React.useState(null);
   const [errors, setErrors] = React.useState({});
+  const [detecting, setDetecting] = React.useState(false);
+  const [detectMsg, setDetectMsg] = React.useState('');
+
+  const detectDelivery = async () => {
+    setDetecting(true);
+    setDetectMsg('');
+    try {
+      const loc = await detectLocation();
+      setValues((v) => ({
+        ...v,
+        line1: loc.line1 || v?.line1 || '',
+        city: loc.city || v?.city || '',
+        state: loc.state || v?.state || '',
+        pincode: loc.pincode || v?.pincode || '',
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+      }));
+      setDetectMsg(
+        loc.locationText
+          ? `Detected delivery location: ${loc.locationText}`
+          : `Detected coordinates: ${loc.latitude.toFixed(6)}, ${loc.longitude.toFixed(6)}`
+      );
+    } catch (err) {
+      setDetectMsg(`Could not detect location — ${err.message}`);
+    } finally {
+      setDetecting(false);
+    }
+  };
 
   React.useEffect(() => {
     userService.getProfile(user.id).then((p) => {
@@ -95,6 +124,8 @@ export default function PlaceOrder() {
           city: values.city,
           state: values.state,
           pincode: values.pincode,
+          latitude: values.latitude,
+          longitude: values.longitude,
         },
         paymentMethod: values.paymentMethod === 'COD' ? 'COD' : values.paymentMethod,
         items: items.map((i) => ({
@@ -136,7 +167,18 @@ export default function PlaceOrder() {
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Delivery address</CardTitle>
+              <CardTitle className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Delivery address</span>
+                <Button type="button" variant="outline" size="sm" className="gap-2" onClick={detectDelivery} disabled={detecting}>
+                  {detecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+                  {detecting ? 'Detecting…' : 'Detect my location'}
+                </Button>
+              </CardTitle>
+              {detectMsg ? (
+                <p className={`text-xs ${detectMsg.startsWith('Could not') ? 'text-red-500' : 'text-emerald-600'}`}>
+                  {detectMsg}
+                </p>
+              ) : null}
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <FormField label="Address line" required error={errors.line1} className="sm:col-span-2" htmlFor="line1">

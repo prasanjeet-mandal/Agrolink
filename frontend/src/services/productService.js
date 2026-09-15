@@ -99,9 +99,11 @@ async function toRequest(product) {
     unit: product.unit ?? 'kg',
     availableQuantity: Number(product.stockQuantity ?? product.availableQuantity ?? 0),
     imageUrl: product.image ?? product.imageUrl ?? null,
-    location: product.location?.state
-      ? [product.location.district, product.location.state].filter(Boolean).join(', ')
-      : product.locationText ?? null,
+    location: product.locationText?.trim()
+      ? product.locationText
+      : product.location?.state
+        ? [product.location.district, product.location.state].filter(Boolean).join(', ')
+        : (product.locationText ?? null),
     latitude: product.latitude ?? null,
     longitude: product.longitude ?? null,
     categoryId,

@@ -3,6 +3,7 @@ package com.agrolink.service.impl;
 import com.agrolink.dto.logistics.*;
 import com.agrolink.entity.*;
 import com.agrolink.enums.LogisticsStatus;
+import com.agrolink.enums.OrderStatus;
 import com.agrolink.enums.Role;
 import com.agrolink.repository.*;
 import com.agrolink.service.*;
@@ -60,11 +61,18 @@ public class LogisticsServiceImpl implements LogisticsService {
     }
 
     @Transactional
-    public LogisticsResponse assign(Long id, AssignDeliveryRequest r) {
+    public LogisticsResponse assign(String email, Long id, AssignDeliveryRequest r) {
         Logistics l = get(id);
+        User caller = users.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        if (caller.getRole() != Role.DELIVERY_PARTNER) {
+            throw new RuntimeException("Only delivery partners can accept deliveries");
+        }
         User u = users.findById(r.deliveryPartnerId()).orElseThrow(() -> new RuntimeException("Delivery partner not found"));
         if (u.getRole() != Role.DELIVERY_PARTNER) {
             throw new RuntimeException("User is not a delivery partner");
+        }
+        if (!u.getEmail().equals(email)) {
+            throw new RuntimeException("You can only accept a delivery for yourself");
         }
         l.setDeliveryPartner(u);
         l.setStatus(LogisticsStatus.ASSIGNED);
@@ -72,18 +80,35 @@ public class LogisticsServiceImpl implements LogisticsService {
     }
 
     @Transactional
-    public LogisticsResponse status(Long id, LogisticsStatusRequest r) {
+    public LogisticsResponse status(String email, Long id, LogisticsStatusRequest r) {
         Logistics l = get(id);
+        User caller = users.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        if (caller.getRole() != Role.DELIVERY_PARTNER) {
+            throw new RuntimeException("Only delivery partners can update delivery status");
+        }
+        if (l.getDeliveryPartner() != null && !l.getDeliveryPartner().getEmail().equals(email)) {
+            throw new RuntimeException("This delivery is assigned to another partner");
+        }
         LogisticsStatus s = LogisticsStatus.valueOf(r.status().toUpperCase());
         l.setStatus(s);
-        if (s == LogisticsStatus.DELIVERED) {
-            l.getOrder().setStatus(com.agrolink.enums.OrderStatus.DELIVERED);
+        OrderStatus target = switch (s) {
+            case PICKED_UP -> OrderStatus.SHIPPED;
+            case IN_TRANSIT, OUT_FOR_DELIVERY -> OrderStatus.OUT_FOR_DELIVERY;
+            case DELIVERED -> OrderStatus.DELIVERED;
+            default -> null;
+        };
+        if (target != null && l.getOrder().getStatus().ordinal() < target.ordinal()) {
+            l.getOrder().setStatus(target);
         }
         notifications.create(l.getOrder().getBuyer().getEmail(), "Logistics update", "Order #" + l.getOrder().getId() + " is " + s.name(), "LOGISTICS");
+        l.getOrder().getItems().stream()
+                .map(i -> i.getProduct().getSeller().getEmail())
+                .distinct()
+                .forEach(se -> notifications.create(se, "Logistics update", "Order #" + l.getOrder().getId() + " is " + s.name(), "LOGISTICS"));
         return to(logistics.save(l));
     }
 
-    public List<LogisticsResponse> mine(String email) {
+    @Transactional(readOnly=true) public List<LogisticsResponse> mine(String email) {
         return logistics.findAll().stream()
                 .filter(x -> x.getDeliveryPartner() == null
                         || (x.getDeliveryPartner().getEmail() != null && x.getDeliveryPartner().getEmail().equals(email)))
@@ -92,8 +117,11 @@ public class LogisticsServiceImpl implements LogisticsService {
     }
 
     @Transactional
-    public LogisticsResponse location(Long id, UpdateLocationRequest r) {
+    public LogisticsResponse location(String email, Long id, UpdateLocationRequest r) {
         Logistics l = get(id);
+        if (l.getDeliveryPartner() == null || !l.getDeliveryPartner().getEmail().equals(email)) {
+            throw new RuntimeException("Only the assigned delivery partner can share live location");
+        }
         l.setCurrentLatitude(r.latitude());
         l.setCurrentLongitude(r.longitude());
         return to(logistics.save(l));
@@ -111,20 +139,20 @@ public class LogisticsServiceImpl implements LogisticsService {
         return to(logistics.save(l));
     }
 
-    public List<ShipmentResponse> shipments() {
+    @Transactional(readOnly=true) public List<ShipmentResponse> shipments() {
         return logistics.findAll().stream().map(this::toShipment).toList();
     }
 
-    public ShipmentResponse shipment(Long id) {
+    @Transactional(readOnly=true) public ShipmentResponse shipment(Long id) {
         Logistics l = get(id);
         return toShipment(l);
     }
 
-    public ShipmentResponse shipmentForOrder(Long orderId) {
+    @Transactional(readOnly=true) public ShipmentResponse shipmentForOrder(Long orderId) {
         return logistics.findByOrderId(orderId).map(this::toShipment).orElse(null);
     }
 
-    public List<ShipmentResponse.Vehicle> vehicles() {
+    @Transactional(readOnly=true) public List<ShipmentResponse.Vehicle> vehicles() {
         return vehicles.findAll().stream()
                 .map(v -> new ShipmentResponse.Vehicle(v.getId(), v.getType(), v.getPlate(), v.getDriverName(), v.getDriverPhone(), v.getStatus()))
                 .toList();

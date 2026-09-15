@@ -10,6 +10,8 @@ public record AddressResponse(
         String district,
         String state,
         String pincode,
-        String addressType
+        String addressType,
+        Double latitude,
+        Double longitude
 ) {
 }

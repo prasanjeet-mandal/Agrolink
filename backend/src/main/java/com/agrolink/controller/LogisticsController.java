@@ -55,17 +55,17 @@ public class LogisticsController {
     }
 
     @PutMapping("/{id}/assign")
-    public LogisticsResponse assign(@PathVariable Long id, @Valid @RequestBody AssignDeliveryRequest r) {
-        return s.assign(id, r);
+    public LogisticsResponse assign(Authentication a, @PathVariable Long id, @Valid @RequestBody AssignDeliveryRequest r) {
+        return s.assign(a.getName(), id, r);
     }
 
     @PutMapping("/{id}/status")
-    public LogisticsResponse status(@PathVariable Long id, @Valid @RequestBody LogisticsStatusRequest r) {
-        return s.status(id, r);
+    public LogisticsResponse status(Authentication a, @PathVariable Long id, @Valid @RequestBody LogisticsStatusRequest r) {
+        return s.status(a.getName(), id, r);
     }
 
     @PutMapping("/{id}/location")
-    public LogisticsResponse location(@PathVariable Long id, @Valid @RequestBody UpdateLocationRequest r) {
-        return s.location(id, r);
+    public LogisticsResponse location(Authentication a, @PathVariable Long id, @Valid @RequestBody UpdateLocationRequest r) {
+        return s.location(a.getName(), id, r);
     }
 }

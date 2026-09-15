@@ -98,7 +98,7 @@ export default function Register() {
             </p>
           ) : null}
 
-          <GoogleSignIn mode="register" onError={(msg) => setErrors((e) => ({ ...e, form: msg }))} />
+          <GoogleSignIn mode="register" defaultRole={role} onError={(msg) => setErrors((e) => ({ ...e, form: msg }))} />
 
           <div className="relative flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
             <span className="h-px flex-1 bg-muted" />

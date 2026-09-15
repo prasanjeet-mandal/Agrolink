@@ -134,6 +134,12 @@ public class AddressServiceImpl implements AddressService {
         address.setAddressType(
                 request.addressType()
         );
+        address.setLatitude(
+                request.latitude()
+        );
+        address.setLongitude(
+                request.longitude()
+        );
     }
 
     private AddressResponse toResponse(
@@ -148,7 +154,9 @@ public class AddressServiceImpl implements AddressService {
                 address.getDistrict(),
                 address.getState(),
                 address.getPincode(),
-                address.getAddressType()
+                address.getAddressType(),
+                address.getLatitude(),
+                address.getLongitude()
         );
     }
 }

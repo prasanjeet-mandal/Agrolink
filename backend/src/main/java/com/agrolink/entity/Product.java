@@ -16,5 +16,7 @@ public class Product extends BaseEntity {
     @Column(nullable=false) private Double availableQuantity;
     private String imageUrl;
     private String location;
+    private Double latitude;
+    private Double longitude;
     @Enumerated(EnumType.STRING) @Column(nullable=false) private ProductStatus status=ProductStatus.ACTIVE;
 }
