@@ -64,3 +64,6 @@ ai-service/agromarket-ml/datasets/
 
 # --- Build output -------------------------------------------------------------
 backend/target/
+
+# --- Large Mandi datasets -----------------------------------------------------
+ai-service/agromarket-ml/mandi/
