@@ -1,10 +1,12 @@
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[6-9]\d{9}$/;
+const PHONE_E164_RE = /^\+[1-9]\d{1,14}$/;
 const PINCODE_RE = /^[1-9]\d{5}$/;
 const UPI_RE = /^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/;
 
 export const isEmail = (value) => EMAIL_RE.test(value ?? '');
 export const isPhone = (value) => PHONE_RE.test((value ?? '').replace(/\s+/g, ''));
+export const isE164Phone = (value) => PHONE_E164_RE.test((value ?? '').replace(/\s+/g, ''));
 export const isPincode = (value) => PINCODE_RE.test(value ?? '');
 export const isUpi = (value) => UPI_RE.test(value ?? '');
 
@@ -19,6 +21,11 @@ export function validateEmail(value, label = 'Email') {
 
 export function validatePhone(value, label = 'Phone number') {
   if (!value || !isPhone(value)) return `${label} must be 10 digits starting with 6-9`;
+  return null;
+}
+
+export function validatePhoneE164(value, label = 'Phone number') {
+  if (!value || !isE164Phone(value)) return `${label} must be in international format, e.g. +919876543210`;
   return null;
 }
 

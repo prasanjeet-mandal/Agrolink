@@ -23,6 +23,7 @@ export const QUALITIES = ['Standard', 'Premium', 'A+'];
 const EMPTY = {
   name: '', variety: '', category: '', unit: 'kg', pricePerUnit: '', stockQuantity: '',
   minOrderQuantity: '', quality: 'Standard', icon: '🌾', description: '', certification: '',
+  latitude: '', longitude: '',
 };
 
 export default function ProductForm({ initial, submitLabel = 'Save product', submitting, onSubmit }) {
@@ -120,6 +121,15 @@ export default function ProductForm({ initial, submitLabel = 'Save product', sub
         </FormField>
         <FormField label="Certification (comma separated)" htmlFor="certification" hint="e.g. NPOP Organic, FSSAI, GI">
           <Input id="certification" value={values.certification} onChange={set('certification')} placeholder="Optional" />
+        </FormField>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormField label="Pickup latitude" htmlFor="latitude" hint="Optional — real coordinates where this produce is picked up.">
+          <Input id="latitude" type="number" step="any" min={-90} max={90} value={values.latitude} onChange={set('latitude')} placeholder="e.g. 30.9010" />
+        </FormField>
+        <FormField label="Pickup longitude" htmlFor="longitude" hint="Optional — real coordinates where this produce is picked up.">
+          <Input id="longitude" type="number" step="any" min={-180} max={180} value={values.longitude} onChange={set('longitude')} placeholder="e.g. 75.8573" />
         </FormField>
       </div>
 

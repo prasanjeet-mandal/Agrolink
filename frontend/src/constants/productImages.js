@@ -17,5 +17,11 @@ export const PRODUCT_IMAGES = {
 };
 
 export function productImageOf(productId) {
-  return PRODUCT_IMAGES[productId] ?? null;
+  if (productId === null || productId === undefined || productId === '') {
+    return null;
+  }
+
+  const value = String(productId);
+  const key = value.startsWith('pr') ? value : `pr${value}`;
+  return PRODUCT_IMAGES[key] ?? null;
 }

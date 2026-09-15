@@ -1,0 +1,53 @@
+# ============================================================================
+# AgroLink — .gitignore
+# Protect secrets, local configs, logs, and build artifacts.
+# ============================================================================
+
+# --- Environment / secrets (NEVER commit real values!) ----------------------
+.env
+.env.*
+!.env.example
+application-local.properties
+application-secret.properties
+*.pem
+*.key
+*.pfx
+!.env.example
+
+# --- Logs ---------------------------------------------------------------------
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+backend/backend-run*.log
+
+# --- Java / Spring Boot -------------------------------------------------------
+backend/target/
+!backend/src/main/resources/application.properties
+*.class
+
+# --- Python services -----------------------------------------------------------
+ai-service/.venv/
+optimization-service/.venv/
+__pycache__/
+*.py[cod]
+.venv/
+
+# --- Node / Vite ---------------------------------------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.local
+
+# --- IDE / OS -------------------------------------------------------------------
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# --- Misc local files -------------------------------------------------------------
+backend/nohup.out
+nohup.out

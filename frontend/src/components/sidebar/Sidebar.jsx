@@ -60,5 +60,7 @@ export default function Sidebar({ role, open, onClose }) {
 export function roleForPath(pathname, user) {
   if (pathname.startsWith('/producer/fpo')) return ROLES.FPO;
   if (pathname.startsWith('/producer/farmer')) return ROLES.FARMER;
+  if (pathname.startsWith('/delivery-partner')) return ROLES.DELIVERY_PARTNER;
+  if (pathname.startsWith('/admin')) return ROLES.ADMIN;
   return user?.role ?? ROLES.CONSUMER;
 }

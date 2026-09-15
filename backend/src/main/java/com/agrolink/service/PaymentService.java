@@ -1,0 +1,1 @@
+package com.agrolink.service;import com.agrolink.dto.payment.*;public interface PaymentService{PaymentResponse initiate(String email,Long orderId,PaymentRequest r);PaymentResponse confirm(String email,Long orderId);}

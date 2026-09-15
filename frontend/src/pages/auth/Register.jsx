@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, Eye, EyeOff, Loader2, Mail, MailCheck, Phone, ShieldCheck, Store, UserRound, Users } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Car, Check, Eye, EyeOff, IdCard, Loader2, Mail, MailCheck, Phone, ShieldCheck, Store, Truck, UserRound, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormField } from '@/components/forms';
 import { authService } from '@/services/authService';
-import { validateForm, required, isEmail, validatePhone, validatePassword, validateConfirmPassword, getPasswordStrength } from '@/utils/validation';
+import { validateForm, required, isEmail, validatePhoneE164, validatePassword, validateConfirmPassword, getPasswordStrength } from '@/utils/validation';
 import { ROLES, ROLE_ROUTES } from '@/constants/roles';
 import { cn } from '@/utils/cn';
 
@@ -19,6 +19,7 @@ const ROLE_OPTIONS = [
   { value: ROLES.CONSUMER, label: 'Consumer', desc: 'Buy fresh produce directly', icon: Store },
   { value: ROLES.FARMER, label: 'Farmer', desc: 'Sell your own farm produce', icon: UserRound },
   { value: ROLES.FPO, label: 'FPO / Organization', desc: 'Aggregate member produce & sell', icon: Users },
+  { value: ROLES.DELIVERY_PARTNER, label: 'Delivery Partner', desc: 'Deliver orders as a logistics partner', icon: Truck },
 ];
 
 const MESSAGE = {
@@ -29,7 +30,7 @@ const MESSAGE = {
   [4]: { text: 'Strong', bar: 'from-emerald-500 to-green-600', textColor: 'text-emerald-600' },
 };
 
-function OtpBoxes({ value, onChange, disabled, autoFocus = true }) {
+function OtpBoxes({ value, onChange, onComplete, disabled, autoFocus = true }) {
   const refs = React.useRef([]);
 
   const handleChange = (idx, e) => {
@@ -37,8 +38,10 @@ function OtpBoxes({ value, onChange, disabled, autoFocus = true }) {
     const next = (value ?? '').split('');
     if (digit) {
       next[idx] = digit[digit.length - 1];
-      onChange(next.join(''));
+      const joined = next.join('');
+      onChange(joined);
       if (idx < OTP_LENGTH - 1) refs.current[idx + 1]?.focus();
+      if (joined.length === OTP_LENGTH) onComplete?.(joined);
     } else {
       next[idx] = '';
       onChange(next.join(''));
@@ -87,11 +90,32 @@ export default function Register() {
   const { register } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Derive from URL param on every render — reactive
+  const paramRole = searchParams.get('role')?.toUpperCase() ?? '';
+  const validRoles = Object.values(ROLES);
+  const roleLocked = validRoles.includes(paramRole);
+  const initialRole = roleLocked ? paramRole : ROLES.CONSUMER;
+
+  // Show only the locked role option; otherwise show all
+  const visibleOptions = roleLocked
+    ? ROLE_OPTIONS.filter((o) => o.value === initialRole)
+    : ROLE_OPTIONS;
 
   const [step, setStep] = React.useState('details');
-  const [role, setRole] = React.useState(ROLES.CONSUMER);
+  const [role, setRole] = React.useState(initialRole);
+
+  // Sync role state whenever URL param changes (e.g. user navigates /register?role=FARMER → /register?role=CONSUMER)
+  React.useEffect(() => {
+    setRole(initialRole);
+    setStep('details');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramRole]);
+
   const [values, setValues] = React.useState({
     name: '', email: '', phone: '', password: '', confirmPassword: '',
+    vehicleNumber: '', drivingLicense: '',
   });
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
@@ -124,7 +148,7 @@ export default function Register() {
     setStep('otp');
     toast({
       title: 'Verification code sent',
-      description: 'One OTP is sent to both your email and mobile.',
+      description: 'A one-time code was texted to your mobile number.',
       variant: 'success',
     });
   };
@@ -134,9 +158,15 @@ export default function Register() {
     const fieldRules = {
       name: (v) => required(v, 'Full name'),
       email: (v) => isEmail(v) ? null : 'Enter a valid email address',
-      phone: validatePhone,
+      phone: validatePhoneE164,
       password: validatePassword,
       confirmPassword: (v, all) => validateConfirmPassword(v, all.password),
+      ...(role === ROLES.DELIVERY_PARTNER
+        ? {
+            vehicleNumber: (v) => required(v, 'Vehicle number'),
+            drivingLicense: (v) => required(v, 'Driving licence number'),
+          }
+        : {}),
     };
     const validation = validateForm(values, fieldRules);
     setErrors(validation);
@@ -160,10 +190,11 @@ export default function Register() {
       setVerifyError(`Enter the ${OTP_LENGTH}-digit code`);
       return;
     }
+    if (!otpReq?.requestId) return;
     setVerifying(true);
     try {
-      await authService.verifyRegistrationOtp(otpReq.requestId, otp);
-      const account = await register(payloadRef.current);
+      const verified = await authService.verifyRegistrationOtp(otpReq.requestId, otp, payloadRef.current);
+      const account = await register(payloadRef.current, verified?.registrationToken);
       navigate(ROLE_ROUTES[account.role]);
       toast({
         title: 'Account created',
@@ -172,9 +203,15 @@ export default function Register() {
       });
     } catch (err) {
       setVerifyError(err.message);
+      setOtp('');
     } finally {
       setVerifying(false);
     }
+  };
+
+  const submitVerify = async (e) => {
+    if (verifying) return;
+    await verify(e ?? { preventDefault: () => {} });
   };
 
   const resend = async () => {
@@ -195,8 +232,16 @@ export default function Register() {
   return (
     <Card glass glow>
       <CardHeader>
-        <CardTitle className="text-2xl">Create your account</CardTitle>
-        <CardDescription>Choose how you want to use Agrolink.</CardDescription>
+        <CardTitle className="text-2xl">
+          {roleLocked
+            ? `Join as ${ROLE_OPTIONS.find((o) => o.value === initialRole)?.label ?? 'Member'}`
+            : 'Create your account'}
+        </CardTitle>
+        <CardDescription>
+          {roleLocked
+            ? `You're registering as a ${ROLE_OPTIONS.find((o) => o.value === initialRole)?.label}. ${ROLE_OPTIONS.find((o) => o.value === initialRole)?.desc}.`
+            : 'Choose how you want to use Agrolink.'}
+        </CardDescription>
         <div className="flex items-center gap-4 pt-1 text-xs font-medium">
           <span className={cn('flex items-center gap-1.5', step === 'details' ? 'text-primary' : 'text-muted-foreground')}>
             <span className={cn('flex h-5 w-5 items-center justify-center rounded-full', step === 'details' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>1</span>
@@ -219,21 +264,25 @@ export default function Register() {
             ) : null}
 
             <div className="grid gap-2">
-              <span className="text-sm font-medium leading-none">I am a…</span>
-              <div className="grid gap-2 sm:grid-cols-3">
-                {ROLE_OPTIONS.map((opt) => {
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium leading-none">I am a…</span>
+              </div>
+              <div className={cn('grid gap-2', visibleOptions.length === 1 ? '' : 'sm:grid-cols-3')}>
+                {visibleOptions.map((opt) => {
                   const selected = role === opt.value;
                   return (
                     <button
                       type="button"
                       key={opt.value}
-                      onClick={() => setRole(opt.value)}
+                      onClick={() => !roleLocked && setRole(opt.value)}
                       aria-pressed={selected}
+                      disabled={roleLocked}
                       className={cn(
                         'group relative flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-all',
                         selected
                           ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                          : 'hover:border-primary/40 hover:bg-muted/60'
+                          : 'hover:border-primary/40 hover:bg-muted/60',
+                        roleLocked && 'cursor-default'
                       )}
                     >
                       {selected ? (
@@ -267,10 +316,27 @@ export default function Register() {
               <FormField label="Phone" required error={errors.phone} htmlFor="phone">
                 <div className="relative">
                   <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="phone" type="tel" inputMode="numeric" value={values.phone} onChange={set('phone')} placeholder="10-digit mobile" autoComplete="tel" maxLength={10} className="pl-9" />
+                  <Input id="phone" type="tel" inputMode="tel" value={values.phone} onChange={set('phone')} placeholder="+91 9876543210" autoComplete="tel-national" maxLength={15} className="pl-9" />
                 </div>
               </FormField>
             </div>
+
+            {role === ROLES.DELIVERY_PARTNER ? (
+              <div className="grid gap-4 rounded-lg border border-primary/20 bg-primary/5 p-4 sm:grid-cols-2">
+                <FormField label="Vehicle number" required error={errors.vehicleNumber} htmlFor="vehicleNumber">
+                  <div className="relative">
+                    <Car className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input id="vehicleNumber" value={values.vehicleNumber} onChange={set('vehicleNumber')} placeholder="e.g. PB-10-AB-1234" className="pl-9" />
+                  </div>
+                </FormField>
+                <FormField label="Driving licence number" required error={errors.drivingLicense} htmlFor="drivingLicense">
+                  <div className="relative">
+                    <IdCard className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input id="drivingLicense" value={values.drivingLicense} onChange={set('drivingLicense')} placeholder="e.g. DL-042019-007654" className="pl-9" />
+                  </div>
+                </FormField>
+              </div>
+            ) : null}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="Password" required error={errors.password} htmlFor="password">
@@ -359,8 +425,8 @@ export default function Register() {
                   <MailCheck className="h-4 w-4" /> Code sent
                 </p>
                 <p>
-                  One OTP was sent to <b>{otpReq.maskedEmail}</b> and <b>{otpReq.maskedPhone}</b>.
-                  The same code verifies both.
+                  A one-time code was texted to <b>{otpReq.maskedPhone}</b>. Enter it below to verify
+                  your mobile and finish creating your account.
                 </p>
                 {otpReq.otp ? (
                   <p className="pt-1 text-xs text-muted-foreground">
@@ -372,7 +438,7 @@ export default function Register() {
             ) : null}
 
             <FormField label={`Enter the ${OTP_LENGTH}-digit code`} required htmlFor="otp">
-              <OtpBoxes value={otp} onChange={(v) => { setOtp(v); setVerifyError(''); }} disabled={verifying} />
+              <OtpBoxes value={otp} onChange={(v) => { setOtp(v); setVerifyError(''); }} onComplete={submitVerify} disabled={verifying} />
             </FormField>
 
             <div className="flex items-center justify-between text-sm">
@@ -404,7 +470,10 @@ export default function Register() {
         <div className="border-t pt-3">
           <p className="text-center text-sm text-muted-foreground">
             Already registered?{' '}
-            <Link to="/login" className="font-semibold text-primary hover:underline">
+            <Link
+              to={roleLocked ? `/login?role=${initialRole}` : '/login'}
+              className="font-semibold text-primary hover:underline"
+            >
               Sign in
             </Link>
           </p>

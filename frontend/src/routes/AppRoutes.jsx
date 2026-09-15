@@ -7,6 +7,7 @@ import AuthLayout from './AuthLayout';
 
 import Login from '@/pages/auth/Login';
 import Register from '@/pages/auth/Register';
+import SelectRole from '@/pages/auth/SelectRole';
 import ForgotPassword from '@/pages/auth/ForgotPassword';
 
 import ConsumerDashboard from '@/pages/consumer/Dashboard';
@@ -16,6 +17,10 @@ import ConsumerProductRequest from '@/pages/consumer/ProductRequest';
 import ConsumerCart from '@/pages/consumer/Cart';
 import ConsumerOrders from '@/pages/consumer/Orders';
 import ConsumerOrderTracking from '@/pages/consumer/OrderTracking';
+
+import DeliveryPartnerDashboard from '@/pages/delivery-partner/Dashboard';
+import DeliveryPartnerDeliveryDetails from '@/pages/delivery-partner/DeliveryDetails';
+import DeliveryPartnerActiveDelivery from '@/pages/delivery-partner/ActiveDelivery';
 
 import FarmerDashboard from '@/pages/producer/farmer/Dashboard';
 import FarmerProfile from '@/pages/producer/farmer/Profile';
@@ -64,6 +69,8 @@ import PaymentHistory from '@/pages/payment/PaymentHistory';
 
 import Chatbot from '@/pages/chatbot/Chatbot';
 
+import AdminDashboard from '@/pages/admin/Dashboard';
+
 import Landing from '@/pages/landing/Landing';
 
 import Unauthorized from '@/pages/auth/Unauthorized';
@@ -74,6 +81,8 @@ function Home() {
   if (user?.role === ROLES.FARMER) return <Navigate to="/producer/farmer" replace />;
   if (user?.role === ROLES.FPO) return <Navigate to="/producer/fpo" replace />;
   if (user?.role === ROLES.CONSUMER) return <Navigate to="/consumer" replace />;
+  if (user?.role === ROLES.DELIVERY_PARTNER) return <Navigate to="/delivery-partner" replace />;
+  if (user?.role === ROLES.ADMIN) return <Navigate to="/admin" replace />;
   return <Landing />;
 }
 
@@ -86,6 +95,7 @@ export default function AppRoutes() {
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/select-role" element={<SelectRole />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
       </Route>
 
@@ -94,7 +104,7 @@ export default function AppRoutes() {
       <Route
         element={
           <ProtectedRoute
-            allowedRoles={[ROLES.CONSUMER, ROLES.FARMER, ROLES.FPO]}
+            allowedRoles={[ROLES.CONSUMER, ROLES.FARMER, ROLES.FPO, ROLES.DELIVERY_PARTNER]}
           />
         }
       >
@@ -155,6 +165,20 @@ export default function AppRoutes() {
             <Route path="/producer/fpo/orders/outgoing" element={<FpoOutgoingOrders />} />
             <Route path="/producer/fpo/payments" element={<FpoPayments />} />
           </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={[ROLES.DELIVERY_PARTNER]} />}>
+            <Route path="/delivery-partner" element={<DeliveryPartnerDashboard />} />
+            <Route path="/delivery-partner/deliveries" element={<DeliveryPartnerDashboard />} />
+            <Route path="/delivery-partner/deliveries/:deliveryId" element={<DeliveryPartnerDeliveryDetails />} />
+            <Route path="/delivery-partner/deliveries/:deliveryId/active" element={<DeliveryPartnerActiveDelivery />} />
+          </Route>
+        </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
+        <Route element={<AppLayout />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
       </Route>
 

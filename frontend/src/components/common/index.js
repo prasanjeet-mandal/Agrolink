@@ -6,4 +6,4 @@ export { default as StatCard } from './StatCard';
 export { default as PageHeader } from './PageHeader';
 export { default as PageHeading } from './PageHeader';
 export { default as DataTable } from '../tables/DataTable';
-export { OrderStatusBadge, PaymentStatusBadge } from './StatusBadge';
+export { OrderStatusBadge, LogisticsStatusBadge, PaymentStatusBadge } from './StatusBadge';

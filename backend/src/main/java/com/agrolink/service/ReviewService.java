@@ -1,0 +1,1 @@
+package com.agrolink.service;import com.agrolink.dto.review.*;import java.util.*;public interface ReviewService{ReviewResponse create(String email,ReviewRequest r);List<ReviewResponse> productReviews(Long productId);ReviewResponse moderate(Long id,String status);}

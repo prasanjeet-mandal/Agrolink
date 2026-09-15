@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import { TrendingDown, TrendingUp, Calculator, Info } from 'lucide-react';
 import { pricingService } from '@/services/pricingService';
+import { productService } from '@/services/productService';
 import { PageHeader, Loading, StatCard } from '@/components/common';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,37 +13,53 @@ import {
 import { formatPrice } from '@/utils/formatPrice';
 import { formatDate } from '@/utils/formatDate';
 
-const PRODUCTS = [
-  { id: 'pr1', name: 'Basmati Rice (Premium)', icon: '🌾', unit: 'kg' },
-  { id: 'pr6', name: 'Kachi Ghani Mustard Oil', icon: '🧡', unit: 'litre' },
-  { id: 'pr4', name: 'Organic Onion', icon: '🧅', unit: 'kg' },
-  { id: 'pr9', name: 'Raw Turmeric', icon: '🫚', unit: 'kg' },
-  { id: 'pr7', name: 'Sunflower Seeds', icon: '🌻', unit: 'kg' },
-];
+const GLYPH = {
+  'Grains & Pulses': '🌾',
+  Oilseeds: '🫘',
+  Vegetables: '🥦',
+  Fruits: '🍇',
+  Spices: '🫚',
+  Dairy: '🥛',
+};
 
 export default function PriceForecast() {
-  const [product, setProduct] = React.useState(PRODUCTS[0].id);
+  const [products, setProducts] = React.useState([]);
+  const [product, setProduct] = React.useState(null);
   const [forecast, setForecast] = React.useState(null);
   const [fees, setFees] = React.useState({ commission: null, logistics: null });
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     let mounted = true;
-    setLoading(true);
+    productService.getAll()
+      .then((list) => {
+        if (!mounted) return;
+        const items = list.map((p) => ({ id: p.id, name: p.name, icon: GLYPH[p.category] ?? '🌾', unit: p.unit }));
+        setProducts(items);
+        if (items.length) setProduct(items[0].id);
+        setLoading(false);
+      });
+    return () => { mounted = false; };
+  }, []);
+
+  React.useEffect(() => {
+    if (product == null) return;
+    let mounted = true;
     Promise.all([
       pricingService.getForecast(product),
-      pricingService.getTrend().catch(() => ({ commission: null, logistics: null })),
+      pricingService.getTrend().catch(() => ({ commission: 3, logistics: 8 })),
     ]).then(([f, t]) => {
       if (!mounted) return;
       setForecast(f);
       setFees(t);
-    }).finally(() => mounted && setLoading(false));
+      setLoading(false);
+    });
     return () => { mounted = false; };
   }, [product]);
 
   if (loading || !forecast) return <Loading label="Loading price forecast…" />;
 
-  const current = PRODUCTS.find((p) => p.id === product);
+  const current = products.find((p) => p.id === product) ?? products[0] ?? { unit: 'kg' };
   const history = forecast.history.map((p) => ({ ...p, time: new Date(p.at).getTime(), prev: null }));
   const future = forecast.forecast.map((p) => ({ ...p, time: new Date(p.at).getTime(), span: null }));
   const data = [...history, ...future];
@@ -64,7 +81,7 @@ export default function PriceForecast() {
           <Select value={product} onValueChange={setProduct}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {PRODUCTS.map((p) => (
+              {products.map((p) => (
                 <SelectItem key={p.id} value={p.id}>{p.icon} {p.name}</SelectItem>
               ))}
             </SelectContent>

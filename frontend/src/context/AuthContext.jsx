@@ -38,10 +38,10 @@ export function AuthProvider({ children }) {
   );
 
   const register = React.useCallback(
-    async (payload) => {
+    async (payload, otpToken) => {
       setLoading(true);
       try {
-        const session = await authService.register(payload);
+        const session = await authService.register(payload, otpToken);
         persist(session);
         return session.user;
       } finally {

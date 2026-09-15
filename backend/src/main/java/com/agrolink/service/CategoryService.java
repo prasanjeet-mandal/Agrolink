@@ -1,0 +1,1 @@
+package com.agrolink.service; import com.agrolink.dto.category.*; import java.util.*; public interface CategoryService{CategoryResponse create(CategoryRequest r);List<CategoryResponse> all();CategoryResponse update(Long id,CategoryRequest r);void delete(Long id);}

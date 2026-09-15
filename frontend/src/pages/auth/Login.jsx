@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, Lock, Mail, Store, Tractor, Users } from 'lucide-react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, Store, Tractor, Truck, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
@@ -14,13 +14,34 @@ const SAMPLE_ACCOUNTS = [
   { label: 'Consumer', role: ROLES.CONSUMER, user: 'meera@example.com', route: ROLE_ROUTES[ROLES.CONSUMER], icon: Store },
   { label: 'Farmer', role: ROLES.FARMER, user: 'harpreet@example.com', route: ROLE_ROUTES[ROLES.FARMER], icon: Tractor },
   { label: 'FPO', role: ROLES.FPO, user: 'fpo.punjab@example.com', route: ROLE_ROUTES[ROLES.FPO], icon: Users },
+  { label: 'Delivery Partner', role: ROLES.DELIVERY_PARTNER, user: 'dp.gurmeet@example.com', route: ROLE_ROUTES[ROLES.DELIVERY_PARTNER], icon: Truck },
+  { label: 'Admin', role: ROLES.ADMIN, user: 'admin@example.com', route: ROLE_ROUTES[ROLES.ADMIN], icon: ShieldCheck },
 ];
+
+const ROLE_HEADING = {
+  [ROLES.CONSUMER]: 'Sign in as Buyer',
+  [ROLES.FARMER]: 'Sign in as Seller',
+  [ROLES.FPO]: 'Sign in as FPO',
+  [ROLES.DELIVERY_PARTNER]: 'Sign in as Delivery Partner',
+  [ROLES.ADMIN]: 'Sign in as Administrator',
+};
 
 export default function Login() {
   const { login } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // Derive from URL param on every render — reactive
+  const paramRole = searchParams.get('role')?.toUpperCase() ?? '';
+  const validRoles = Object.values(ROLES);
+  const roleLocked = validRoles.includes(paramRole);
+
+  // Filter demo accounts to only show the matching one; otherwise show all
+  const visibleAccounts = roleLocked
+    ? SAMPLE_ACCOUNTS.filter((a) => a.role === paramRole)
+    : SAMPLE_ACCOUNTS;
 
   const [values, setValues] = React.useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = React.useState(false);
@@ -62,9 +83,13 @@ export default function Login() {
   return (
     <Card glass glow lift>
       <CardHeader>
-        <CardTitle className="text-2xl">Sign in</CardTitle>
+        <CardTitle className="text-2xl">
+          {roleLocked ? ROLE_HEADING[paramRole] : 'Sign in'}
+        </CardTitle>
         <CardDescription>
-          Access your farm marketplace dashboard.
+          {roleLocked
+            ? `Welcome back! Enter your credentials to continue.`
+            : 'Access your farm marketplace dashboard.'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -124,11 +149,13 @@ export default function Login() {
         </form>
 
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Quick demo access
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            {SAMPLE_ACCOUNTS.map((acc) => (
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Quick demo access
+            </p>
+          </div>
+          <div className={`grid gap-2 ${visibleAccounts.length === 1 ? 'grid-cols-1' : 'grid-cols-3'}`}>
+            {visibleAccounts.map((acc) => (
               <button
                 key={acc.label}
                 type="button"
@@ -147,7 +174,10 @@ export default function Login() {
 
         <p className="text-center text-sm text-muted-foreground">
           New to Agrolink?{' '}
-          <Link to="/register" className="font-semibold text-primary hover:underline">
+          <Link
+            to={roleLocked ? `/register?role=${paramRole}` : '/register'}
+            className="font-semibold text-primary hover:underline"
+          >
             Create an account
           </Link>
         </p>

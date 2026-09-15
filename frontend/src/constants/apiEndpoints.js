@@ -11,33 +11,37 @@ export const API = {
   },
   USERS: {
     BASE: '/api/users',
-    PROFILE: '/api/users/profile',
+    ME: '/api/users/me',
+    ME_PROFILE: '/api/users/me/profile',
   },
   PRODUCERS: {
     BASE: '/api/producers',
-    PROFILE: '/api/producers/profile',
-    STATS: '/api/producers/stats',
   },
   CONSUMERS: {
     BASE: '/api/consumers',
-    PROFILE: '/api/consumers/profile',
-    DASHBOARD: '/api/consumers/dashboard',
   },
   PRODUCTS: {
     BASE: '/api/products',
     MY: '/api/products/mine',
-    SEARCH: '/api/products/search',
-    CATEGORIES: '/api/products/categories',
+    CATEGORIES: '/api/categories',
+  },
+  CATEGORIES: {
+    BASE: '/api/categories',
   },
   MARKETPLACE: {
-    BASE: '/api/marketplace',
-    TRENDING: '/api/marketplace/trending',
+    BASE: '/api/products',
   },
   ORDERS: {
     BASE: '/api/orders',
-    MY: '/api/orders/mine',
+    CHECKOUT: '/api/orders/checkout',
     SELLER: '/api/orders/seller',
-    TRACK: '/api/orders/track',
+  },
+  ADDRESSES: {
+    BASE: '/api/addresses',
+  },
+  CART: {
+    BASE: '/api/cart',
+    ITEMS: '/api/cart/items',
   },
   PRICING: {
     BASE: '/api/pricing',
@@ -51,6 +55,7 @@ export const API = {
   },
   LOGISTICS: {
     BASE: '/api/logistics',
+    MINE: '/api/logistics/mine',
     SHIPMENTS: '/api/logistics/shipments',
     VEHICLES: '/api/logistics/vehicles',
     ROUTES: '/api/logistics/routes',
@@ -62,13 +67,20 @@ export const API = {
   },
   PAYMENTS: {
     BASE: '/api/payments',
-    MY: '/api/payments/mine',
-    CREATE: '/api/payments/create',
-    VERIFY: '/api/payments/verify',
+    CREATE: '/api/payments/orders',
+    VERIFY: '/api/payments/orders',
   },
   AI: {
-    CHAT: '/ai/chat',
+    CHAT: '/api/ai/chat',
     PRICE_FORECAST: '/ai/price-forecast',
     DEMAND_FORECAST: '/ai/demand-forecast',
+  },
+  ADMIN: {
+    BASE: '/api/admin',
+    ORDERS: '/api/admin/orders',
+    REVIEWS: '/api/admin/reviews',
+    USERS: '/api/admin/users',
+    PRODUCTS: '/api/admin/products',
+    STATS: '/api/admin/stats',
   },
 };

@@ -1,53 +1,58 @@
-import { mockDb, MOCK_MODE } from '@/mocks/db';
 import { httpPost, httpGet } from '@/api/client';
 import { API } from '@/constants/apiEndpoints';
+import { toSession, toUser, toUserProfile } from '@/services/normalize';
 
 export const authService = {
   async login(credentials) {
-    if (!MOCK_MODE) {
-      const res = await httpPost(API.AUTH.LOGIN, credentials);
-      return res;
-    }
-    const user = await mockDb.findByCredentials(credentials.email ?? credentials.phone, credentials.password);
-    return {
-      token: `mock-jwt-${user.id}-${Date.now()}`,
-      user,
-    };
+    const res = await httpPost(API.AUTH.LOGIN, { email: credentials.email, password: credentials.password });
+    return toSession(res);
   },
 
-  async register(payload) {
-    if (!MOCK_MODE) return httpPost(API.AUTH.REGISTER, payload);
-    const { session } = await mockDb.registerUser(payload);
-    return { token: `mock-jwt-${session.id}-${Date.now()}`, user: session };
+  async register(payload, otpToken) {
+    const body = {
+      fullName: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      password: payload.password,
+      role: payload.role,
+    };
+    if (payload.role === 'DELIVERY_PARTNER') {
+      body.vehicleNumber = payload.vehicleNumber;
+      body.drivingLicense = payload.drivingLicense;
+    }
+    if (otpToken) body.otpToken = otpToken;
+    const res = await httpPost(API.AUTH.REGISTER, body);
+    return toSession(res);
   },
 
   async sendRegistrationOtp(payload) {
-    if (!MOCK_MODE) return httpPost(API.AUTH.SEND_OTP, payload);
-    return mockDb.sendRegistrationOtp(payload);
+    return httpPost(API.AUTH.SEND_OTP, { email: payload.email, phone: payload.phone });
   },
 
-  async verifyRegistrationOtp(requestId, otp) {
-    if (!MOCK_MODE) return httpPost(API.AUTH.VERIFY_OTP, { requestId, otp });
-    return mockDb.verifyRegistrationOtp(requestId, otp);
+  async verifyRegistrationOtp(requestId, code, payload) {
+    return httpPost(API.AUTH.VERIFY_OTP, {
+      requestId,
+      phone: payload.phone,
+      code,
+      email: payload.email,
+    });
   },
 
   async me() {
-    if (!MOCK_MODE) return httpGet(API.AUTH.ME);
-    const stored = localStorage.getItem('agrolink_user');
-    if (!stored) throw new Error('Not authenticated');
-    const basic = JSON.parse(stored);
-    return mockDb.getUserProfile(basic.user?.id ?? basic.id);
+    const res = await httpGet(API.AUTH.ME);
+    return toUser(res);
+  },
+
+  async getFullProfile() {
+    const res = await httpGet(API.USERS.ME);
+    return toUserProfile(res);
   },
 
   async forgotPassword(email) {
-    if (!MOCK_MODE) return httpPost(API.AUTH.FORGOT_PASSWORD, { email });
-    const user = await mockDb.findUserByEmail(email);
-    if (!user) throw new Error('No account found for that email');
-    return { message: 'Reset link has been sent to your email (mock)' };
+    return httpPost(API.AUTH.FORGOT_PASSWORD, { email });
   },
 
   async resetPassword(token, password) {
-    if (!MOCK_MODE) return httpPost(API.AUTH.RESET_PASSWORD, { token, password });
-    return { message: 'Password updated (mock)' };
+    return httpPost(API.AUTH.RESET_PASSWORD, { token, password });
   },
 };

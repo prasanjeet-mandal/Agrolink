@@ -14,15 +14,6 @@ function wait(ms = FAKE_DELAY) {
 
 let nextUserId = 1000;
 
-const otpRequests = new Map();
-let nextOtpId = 1;
-
-function maskContact(value) {
-  const v = String(value ?? '');
-  if (v.length <= 2) return v;
-  return `${v[0]}${'*'.repeat(Math.max(v.length - 2, 2))}${v[v.length - 1]}`;
-}
-
 function stripPassword(user) {
   const { password: _pw, ...safe } = user;
   return safe;
@@ -154,39 +145,6 @@ export const mockDb = {
     return { session: stripPassword(user), created: true };
   },
 
-  async sendRegistrationOtp({ email, phone }) {
-    await wait(300);
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-    const requestId = `otp${nextOtpId}`;
-    nextOtpId += 1;
-    otpRequests.set(requestId, {
-      otp,
-      contact: `${email} :: ${phone}`,
-      expiresAt: Date.now() + 5 * 60 * 1000,
-    });
-    return {
-      requestId,
-      otp,
-      maskedEmail: maskContact(email),
-      maskedPhone: maskContact(phone),
-      ttlSeconds: 300,
-    };
-  },
-
-  async verifyRegistrationOtp(requestId, otp) {
-    await wait(250);
-    const req = otpRequests.get(requestId);
-    if (!req || req.expiresAt < Date.now()) {
-      otpRequests.delete(requestId);
-      throw new Error('OTP expired. Please request a new one.');
-    }
-    if (String(otp ?? '').trim() !== req.otp) {
-      throw new Error('Incorrect OTP. Please try again.');
-    }
-    otpRequests.delete(requestId);
-    return { verified: true };
-  },
-
   async findUserByEmail(email) {
     await wait();
     const user = users.find((u) => u.email.toLowerCase() === String(email).toLowerCase());
@@ -254,6 +212,33 @@ export const mockDb = {
     return filterByProducer(products, producerId);
   },
 
+  async createProduct(data) {
+    await wait();
+    const product = {
+      id: `pr${Date.now()}`,
+      status: 'ACTIVE',
+      createdAt: new Date().toISOString(),
+      ...data,
+    };
+    products.unshift(product);
+    return product;
+  },
+
+  async updateProduct(productId, data) {
+    await wait();
+    const product = findById(products, productId, 'Product');
+    Object.assign(product, data, { id: productId });
+    return product;
+  },
+
+  async removeProduct(productId) {
+    await wait();
+    const index = products.findIndex((p) => p.id === productId);
+    if (index === -1) throw new Error(`Product not found (${productId})`);
+    products.splice(index, 1);
+    return { id: productId };
+  },
+
   async getCategories() {
     await wait(50);
     return [...new Set(products.map((p) => p.category))];
@@ -292,6 +277,11 @@ export const mockDb = {
   async createOrder(orderData) {
     await wait();
     const id = `o${Date.now()}`;
+    const items = orderData.items ?? [];
+    const computedSubtotal = items.reduce((s, i) => s + (i.total ?? i.pricePerUnit * i.quantity), 0);
+    const subtotal = orderData.subtotal ?? computedSubtotal;
+    const deliveryFee = orderData.deliveryFee
+      ?? (orderData.totalAmount ? Math.max(0, orderData.totalAmount - subtotal) : subtotal > 5000 ? 0 : subtotal === 0 ? 0 : 150);
     const order = {
       id,
       orderNumber: `AGL-2026-${String(orders.length + 1).padStart(4, '0')}`,
@@ -299,7 +289,11 @@ export const mockDb = {
       status: 'PENDING',
       paymentStatus: 'PENDING',
       timeline: [{ status: 'PENDING', at: new Date().toISOString() }],
+      subtotal,
+      deliveryFee,
+      totalAmount: orderData.totalAmount ?? subtotal + deliveryFee,
       ...orderData,
+      items,
     };
     orders.unshift(order);
     return order;

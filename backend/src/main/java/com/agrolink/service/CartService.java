@@ -1,0 +1,1 @@
+package com.agrolink.service; import com.agrolink.dto.cart.*; public interface CartService{CartResponse get(String email);CartResponse add(String email,AddCartItemRequest r);CartResponse update(String email,Long itemId,double qty);void remove(String email,Long itemId);void clear(String email);}
