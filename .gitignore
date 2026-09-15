@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ============================================================================
 # AgroLink — .gitignore
 # Protect secrets, local configs, logs, and build artifacts.
@@ -52,74 +51,10 @@ Thumbs.db
 # --- Misc local files -------------------------------------------------------------
 backend/nohup.out
 nohup.out
-=======
-# Python
-__pycache__/
-*.py[cod]
-.venv/
-venv/
-env/
+# --- AI/ML datasets and generated models --------------------------------------
+ai-service/agromarket-ml/data/
+ai-service/agromarket-ml/models/
 
-# Environment
-.env
-
-# IDE
-.vscode/
-.idea/
-
-# Logs
-*.log
-
-# ML model artifacts
-*.joblib
-*.pkl
-
-# Large datasets
-ai-service/ml-service/data/raw/*.csv
-ai-service/ml-service/data/processed/*.csv
-
-# Temporary / backup
-*_backup.csv
-price_test.json
-
-# OS
-.DS_Store
-Thumbs.db
-
-ai-service/ml-service/data/processed/github_sample_3000.csv
-
-!ai-service/ml-service/data/sample/github_sample_3000.csv
->>>>>>> fe3ac2f7d57bcb16512458ad50cdd3ae5fbf11e7
-
-# Dependencies
-node_modules/
-
-# Build
-dist/
-build/
-
-# Environment variables
-.env
-.env.*
-!.env.example
-
-# Python
-__pycache__/
-*.py[cod]
-.venv/
-venv/
-
-# Java / Maven
-target/
-*.class
-
-# IDE
-.vscode/
-.idea/
-
-# Logs
-*.log
-
-# OS
-.DS_Store
-Thumbs.db
+# Keep directory structure
+!ai-service/agromarket-ml/data/.gitkeep
+!ai-service/agromarket-ml/models/.gitkeep
