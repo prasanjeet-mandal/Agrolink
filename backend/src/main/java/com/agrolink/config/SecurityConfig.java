@@ -28,7 +28,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableMethodSecurity
-@EnableConfigurationProperties({JwtConfig.class, OtpConfig.class, TwilioProperties.class, GoogleConfig.class})
+@EnableConfigurationProperties({JwtConfig.class, OtpConfig.class, GoogleConfig.class})
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

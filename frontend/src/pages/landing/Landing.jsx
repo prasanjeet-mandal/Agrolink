@@ -1209,7 +1209,7 @@ export default function Landing() {
               <li><span className="cursor-default">{t('foot.samachar')}</span></li>
               <li><span className="cursor-default">{t('foot.partner')}</span></li>
               <li><span className="cursor-default">{t('foot.help')}</span></li>
-              <li><Link to="/login" className="transition-colors hover:text-foreground">{t('foot.signin')} <code className="rounded bg-muted px-1 py-0.5">secret</code></Link></li>
+              <li><Link to="/login" className="transition-colors hover:text-foreground">{t('foot.signin')}</Link></li>
             </ul>
           </div>
         </div>

@@ -74,8 +74,6 @@ export const API = {
   },
   AI: {
     CHAT: '/api/ai/chat',
-    PRICE_FORECAST: '/ai/price-forecast',
-    DEMAND_FORECAST: '/ai/demand-forecast',
   },
   ADMIN: {
     BASE: '/api/admin',

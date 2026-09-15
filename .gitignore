@@ -30,7 +30,6 @@ backend/target/
 *.class
 
 # --- Python services -----------------------------------------------------------
-ai-service/.venv/
 optimization-service/.venv/
 __pycache__/
 *.py[cod]

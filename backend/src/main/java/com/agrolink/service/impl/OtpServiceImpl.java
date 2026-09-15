@@ -9,7 +9,6 @@ import com.agrolink.exception.BadRequestException;
 import com.agrolink.exception.RateLimitException;
 import com.agrolink.security.JwtService;
 import com.agrolink.service.OtpService;
-import com.agrolink.service.TwilioVerifyService;
 import com.agrolink.util.PhoneUtil;
 
 import org.springframework.stereotype.Service;
@@ -27,10 +26,9 @@ public class OtpServiceImpl implements OtpService {
 
     private final OtpConfig config;
     private final JwtService jwtService;
-    private final TwilioVerifyService verifyService;
 
     // requestId -> verification intent. Holds only bookkeeping metadata,
-    // never the OTP itself (Twilio Verify owns the code lifecycle).
+    // never the OTP code itself.
     private final Map<String, Intent> store = new ConcurrentHashMap<>();
 
     private final Map<String, String> phoneToRequestId = new ConcurrentHashMap<>();
@@ -40,12 +38,10 @@ public class OtpServiceImpl implements OtpService {
 
     public OtpServiceImpl(
             OtpConfig config,
-            JwtService jwtService,
-            TwilioVerifyService verifyService
+            JwtService jwtService
     ) {
         this.config = config;
         this.jwtService = jwtService;
-        this.verifyService = verifyService;
     }
 
     private record Intent(String email, String phone, Instant createdAt, int attempts) {
@@ -85,14 +81,8 @@ public class OtpServiceImpl implements OtpService {
 
         String exposedCode = null;
 
-        if (verifyService.isConfigured()) {
-            verifyService.sendCode(phone);
-        } else {
-            // Dev fallback: no Twilio credentials configured. Accepts the fixed
-            // dev code so the UI stays usable without an SMS provider.
-            if (config.isDevExposeCode()) {
-                exposedCode = config.getDevCode();
-            }
+        if (config.isDevExposeCode()) {
+            exposedCode = config.getDevCode();
         }
 
         return new OtpSendResponse(
@@ -155,9 +145,7 @@ public class OtpServiceImpl implements OtpService {
             );
         }
 
-        boolean approved = verifyService.isConfigured()
-                ? verifyService.checkCode(phone, code)
-                : config.getDevCode().equals(code);
+        boolean approved = config.getDevCode().equals(code);
 
         if (!approved) {
             store.put(

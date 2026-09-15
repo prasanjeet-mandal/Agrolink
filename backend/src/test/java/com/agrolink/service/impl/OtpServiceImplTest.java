@@ -9,18 +9,12 @@ import com.agrolink.dto.auth.OtpVerifyResponse;
 import com.agrolink.exception.BadRequestException;
 import com.agrolink.exception.RateLimitException;
 import com.agrolink.security.JwtService;
-import com.agrolink.service.TwilioVerifyService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -28,60 +22,11 @@ class OtpServiceImplTest {
 
     private static final String PHONE_IN = "+919811111111";
     private static final String PHONE_OTHER = "+919822222222";
-    private static final String TWILIO_CODE = "424242";
+    private static final String DEV_CODE = "123456";
 
     private OtpConfig config;
     private JwtService jwtService;
     private OtpServiceImpl otpService;
-    private FakeVerifyService verifyService;
-
-    private static class FakeVerifyService implements TwilioVerifyService {
-
-        final boolean configured;
-        final String acceptedCode;
-        final List<String> sends = new ArrayList<>();
-        final List<String> checks = new ArrayList<>();
-
-        boolean failSend;
-        boolean failCheck;
-
-        FakeVerifyService(boolean configured, String acceptedCode) {
-            this.configured = configured;
-            this.acceptedCode = acceptedCode;
-        }
-
-        @Override
-        public boolean isConfigured() {
-            return configured;
-        }
-
-        @Override
-        public void sendCode(String phone) {
-
-            if (failSend) {
-                throw new BadRequestException(
-                        "Unable to send the verification code. "
-                                + "Check the mobile number or try again later."
-                );
-            }
-
-            sends.add(phone);
-        }
-
-        @Override
-        public boolean checkCode(String phone, String code) {
-
-            if (failCheck) {
-                throw new BadRequestException(
-                        "Unable to verify the code. Please try again."
-                );
-            }
-
-            checks.add(phone + ":" + code);
-
-            return configured && acceptedCode.equals(code);
-        }
-    }
 
     @BeforeEach
     void setUp() {
@@ -94,7 +39,7 @@ class OtpServiceImplTest {
         config.setMaxVerifyAttempts(5);
         config.setRequireVerify(true);
         config.setDevExposeCode(true);
-        config.setDevCode("123456");
+        config.setDevCode(DEV_CODE);
 
         JwtConfig jwtConfig = new JwtConfig();
         jwtConfig.setSecret("AgroLinkTestSecretKeyForJwtAuthentication2026Secure");
@@ -102,30 +47,25 @@ class OtpServiceImplTest {
         jwtConfig.setRegistrationExpiration(600000);
 
         jwtService = new JwtService(jwtConfig);
-
-        verifyService = new FakeVerifyService(true, TWILIO_CODE);
-
-        otpService = new OtpServiceImpl(config, jwtService, verifyService);
+        otpService = new OtpServiceImpl(config, jwtService);
     }
 
     @Test
-    void neverExposesCodeWhenTwilioConnected() {
+    void devCodeIsExposedOnSend() {
 
         OtpSendResponse sent = otpService.send(sendRequest("tw@example.com", PHONE_IN));
 
         assertNotNull(sent.requestId());
-        assertNull(sent.otp(), "The OTP must never be returned when Twilio Verify is active");
-        assertEquals(1, verifyService.sends.size());
-        assertEquals(PHONE_IN, verifyService.sends.get(0));
+        assertEquals(DEV_CODE, sent.otp());
     }
 
     @Test
-    void sendAndVerifyWithTwilioReturnsRegistrationToken() {
+    void sendAndVerifyWithDevCodeReturnsRegistrationToken() {
 
         OtpSendResponse sent = otpService.send(sendRequest("sita@example.com", PHONE_IN));
 
         OtpVerifyResponse verified = otpService.verify(
-                verifyRequest(sent.requestId(), PHONE_IN, TWILIO_CODE, "sita@example.com")
+                verifyRequest(sent.requestId(), PHONE_IN, DEV_CODE, "sita@example.com")
         );
 
         assertTrue(verified.verified());
@@ -144,7 +84,7 @@ class OtpServiceImplTest {
         OtpSendResponse sent = otpService.send(sendRequest("one@example.com", PHONE_IN));
 
         OtpVerifyResponse verified = otpService.verify(
-                verifyRequest(sent.requestId(), PHONE_IN, TWILIO_CODE, "one@example.com")
+                verifyRequest(sent.requestId(), PHONE_IN, DEV_CODE, "one@example.com")
         );
 
         JwtService.RegistrationClaims claims =
@@ -162,7 +102,7 @@ class OtpServiceImplTest {
         BadRequestException ex = assertThrows(
                 BadRequestException.class,
                 () -> otpService.verify(
-                        verifyRequest(sent.requestId(), PHONE_OTHER, TWILIO_CODE, "two@example.com")
+                        verifyRequest(sent.requestId(), PHONE_OTHER, DEV_CODE, "two@example.com")
                 )
         );
 
@@ -178,26 +118,10 @@ class OtpServiceImplTest {
         );
 
         assertTrue(ex.getMessage().toLowerCase().contains("international format"));
-        assertTrue(verifyService.sends.isEmpty());
     }
 
     @Test
-    void sendFailureIsReportedSafe() {
-
-        FakeVerifyService failing = new FakeVerifyService(true, TWILIO_CODE);
-        OtpServiceImpl service = new OtpServiceImpl(config, jwtService, failing);
-        failing.failSend = true;
-
-        BadRequestException ex = assertThrows(
-                BadRequestException.class,
-                () -> service.send(sendRequest("fail@example.com", PHONE_IN))
-        );
-
-        assertTrue(ex.getMessage().contains("Unable to send the verification code"));
-    }
-
-    @Test
-    void wrongTwilioCodeIsRejected() {
+    void wrongCodeIsRejected() {
 
         OtpSendResponse sent = otpService.send(sendRequest("wrong@example.com", PHONE_IN));
 
@@ -209,32 +133,10 @@ class OtpServiceImplTest {
         );
 
         assertTrue(ex.getMessage().contains("Invalid or expired OTP"));
-        assertFalse(verifyService.checks.isEmpty());
-        assertEquals(PHONE_IN + ":000000", verifyService.checks.get(0));
-    }
-
-    @Test
-    void checkFailureIsReportedSafe() {
-
-        OtpSendResponse sent = otpService.send(sendRequest("check@example.com", PHONE_IN));
-
-        verifyService.failCheck = true;
-
-        BadRequestException ex = assertThrows(
-                BadRequestException.class,
-                () -> otpService.verify(
-                        verifyRequest(sent.requestId(), PHONE_IN, TWILIO_CODE, "check@example.com")
-                )
-        );
-
-        assertTrue(ex.getMessage().contains("Unable to verify the code"));
     }
 
     @Test
     void wrongCodeIncrementsAttemptsAndInvalidatesAfterLimit() {
-
-        FakeVerifyService dev = new FakeVerifyService(false, null);
-        otpService = new OtpServiceImpl(config, jwtService, dev);
 
         OtpSendResponse sent = otpService.send(sendRequest("rama@example.com", PHONE_IN));
 
@@ -254,24 +156,6 @@ class OtpServiceImplTest {
     }
 
     @Test
-    void devFallbackAcceptsConfiguredDevCode() {
-
-        FakeVerifyService dev = new FakeVerifyService(false, null);
-        otpService = new OtpServiceImpl(config, jwtService, dev);
-
-        OtpSendResponse sent = otpService.send(sendRequest("dev@example.com", PHONE_IN));
-
-        assertEquals("123456", sent.otp());
-        assertTrue(dev.sends.isEmpty(), "No Twilio call should be made in dev fallback");
-
-        OtpVerifyResponse verified = otpService.verify(
-                verifyRequest(sent.requestId(), PHONE_IN, "123456", "dev@example.com")
-        );
-
-        assertTrue(verified.verified());
-    }
-
-    @Test
     void resendWithinCooldownIsRejected() {
 
         otpService.send(sendRequest("kavi@example.com", PHONE_IN));
@@ -284,9 +168,6 @@ class OtpServiceImplTest {
 
     @Test
     void sendLimitReachedWithinWindow() {
-
-        FakeVerifyService dev = new FakeVerifyService(false, null);
-        otpService = new OtpServiceImpl(config, jwtService, dev);
 
         config.setResendCooldownSeconds(0);
 
@@ -303,9 +184,6 @@ class OtpServiceImplTest {
     @Test
     void oldIntentIsInvalidatedOnResend() {
 
-        FakeVerifyService dev = new FakeVerifyService(false, null);
-        otpService = new OtpServiceImpl(config, jwtService, dev);
-
         config.setResendCooldownSeconds(0);
 
         OtpSendResponse first = otpService.send(sendRequest("new@example.com", PHONE_IN));
@@ -313,11 +191,11 @@ class OtpServiceImplTest {
 
         assertThrows(
                 BadRequestException.class,
-                () -> otpService.verify(verifyRequest(first.requestId(), PHONE_IN, "123456", "new@example.com"))
+                () -> otpService.verify(verifyRequest(first.requestId(), PHONE_IN, DEV_CODE, "new@example.com"))
         );
 
         OtpVerifyResponse verified = otpService.verify(
-                verifyRequest(second.requestId(), PHONE_IN, "123456", "new@example.com")
+                verifyRequest(second.requestId(), PHONE_IN, DEV_CODE, "new@example.com")
         );
 
         assertTrue(verified.verified());
@@ -325,9 +203,6 @@ class OtpServiceImplTest {
 
     @Test
     void expiredOtpFails() throws InterruptedException {
-
-        FakeVerifyService dev = new FakeVerifyService(false, null);
-        otpService = new OtpServiceImpl(config, jwtService, dev);
 
         config.setTtlSeconds(1);
 
@@ -337,7 +212,7 @@ class OtpServiceImplTest {
 
         BadRequestException ex = assertThrows(
                 BadRequestException.class,
-                () -> otpService.verify(verifyRequest(sent.requestId(), PHONE_IN, "123456", "fast@example.com"))
+                () -> otpService.verify(verifyRequest(sent.requestId(), PHONE_IN, DEV_CODE, "fast@example.com"))
         );
 
         assertTrue(ex.getMessage().contains("expired"));
@@ -348,7 +223,7 @@ class OtpServiceImplTest {
 
         assertThrows(
                 BadRequestException.class,
-                () -> otpService.verify(verifyRequest("no-such-id", PHONE_IN, "123456", "x@example.com"))
+                () -> otpService.verify(verifyRequest("no-such-id", PHONE_IN, DEV_CODE, "x@example.com"))
         );
     }
 

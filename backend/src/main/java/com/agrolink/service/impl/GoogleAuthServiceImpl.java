@@ -19,8 +19,11 @@ import com.agrolink.security.SecurityUser;
 import com.agrolink.service.GoogleAuthService;
 import com.agrolink.util.RoleGuard;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 public class GoogleAuthServiceImpl implements GoogleAuthService {
@@ -31,6 +34,7 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
     private final UserRepository userRepository;
     private final DeliveryPartnerProfileRepository deliveryPartnerProfileRepository;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     public GoogleAuthServiceImpl(
             GoogleConfig googleConfig,
@@ -38,7 +42,8 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
             GoogleIdTokenVerifier tokenVerifier,
             UserRepository userRepository,
             DeliveryPartnerProfileRepository deliveryPartnerProfileRepository,
-            JwtService jwtService
+            JwtService jwtService,
+            PasswordEncoder passwordEncoder
     ) {
         this.googleConfig = googleConfig;
         this.tokenExchanger = tokenExchanger;
@@ -46,6 +51,7 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
         this.userRepository = userRepository;
         this.deliveryPartnerProfileRepository = deliveryPartnerProfileRepository;
         this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -150,6 +156,11 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
         user.setAuthProvider(AuthProvider.GOOGLE);
         user.setGoogleId(claims.googleId());
         user.setEmailVerified(claims.emailVerified());
+        user.setPassword(
+                passwordEncoder.encode(
+                        UUID.randomUUID().toString()
+                )
+        );
 
         user = userRepository.save(user);
 

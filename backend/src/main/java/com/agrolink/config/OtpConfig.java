@@ -21,8 +21,6 @@ public class OtpConfig {
 
     private String devCode = "123456";
 
-    private String provider = "mock";
-
     public long getTtlSeconds() {
         return ttlSeconds;
     }
@@ -85,13 +83,5 @@ public class OtpConfig {
 
     public void setDevCode(String devCode) {
         this.devCode = devCode;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
     }
 }

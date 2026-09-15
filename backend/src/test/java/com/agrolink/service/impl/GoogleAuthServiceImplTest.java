@@ -19,8 +19,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -52,6 +55,8 @@ class GoogleAuthServiceImplTest {
     private DeliveryPartnerProfileRepository deliveryPartnerProfileRepository;
     @Mock
     private JwtService jwtService;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     private FakeGoogleConfig config;
     private FakeTokenExchanger exchanger;
@@ -63,9 +68,10 @@ class GoogleAuthServiceImplTest {
         config = new FakeGoogleConfig(CLIENT_ID, "secret");
         exchanger = new FakeTokenExchanger(ID_TOKEN);
         verifier = new FakeTokenVerifier(CLIENT_ID);
-        service = new GoogleAuthServiceImpl(config, exchanger, verifier, userRepository, deliveryPartnerProfileRepository, jwtService);
+        service = new GoogleAuthServiceImpl(config, exchanger, verifier, userRepository, deliveryPartnerProfileRepository, jwtService, passwordEncoder);
 
         lenient().when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        lenient().when(passwordEncoder.encode(any())).thenReturn("encoded-random-password");
     }
 
     @Test
@@ -213,6 +219,10 @@ class GoogleAuthServiceImplTest {
         assertEquals(Role.CONSUMER.name(), res.role());
         assertNotNull(res.token());
         assertNotNull(res.userId());
+
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(captor.capture());
+        assertEquals("encoded-random-password", captor.getValue().getPassword());
         verify(deliveryPartnerProfileRepository, never()).save(any());
     }
 
