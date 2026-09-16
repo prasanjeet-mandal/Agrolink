@@ -28,7 +28,8 @@ app = FastAPI(
 async def validation_handler(request: Request, exc: RequestValidationError):
     import sys
     from fastapi.responses import JSONResponse
-    print("VALIDATION_ERROR:", exc.errors(), flush=True, file=sys.stderr)
+    body_bytes = await request.body()
+    print("VALIDATION_ERROR:", exc.errors(), "RAW_BODY:", body_bytes[:500], flush=True, file=sys.stderr)
     return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
 

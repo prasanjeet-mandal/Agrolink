@@ -27,6 +27,7 @@ public class MlClient {
     private final String url;
     private final RestClient client;
     private final ObjectMapper json = new ObjectMapper();
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MlClient.class);
 
     public MlClient(@Value("${app.ai.python-url:http://localhost:8000}") String url) {
         this.url = url;
@@ -144,9 +145,9 @@ public class MlClient {
             if (v.isNumber()) {
                 return Optional.of(v.asDouble());
             }
-        } catch (Exception ignored) {
-            // ai-service offline or malformed reply -> caller falls back.
+        } catch (Exception e) {
+            log.warn("ML {} failed: {}", path, e.toString());
+            return Optional.empty();
         }
-        return Optional.empty();
     }
 }
