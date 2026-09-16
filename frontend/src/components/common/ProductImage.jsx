@@ -15,7 +15,7 @@ const gradientByCategory = {
 
 const isImageUrl = (v) => typeof v === 'string' && (v.startsWith('/') || v.startsWith('http'));
 
-export default function ProductImage({ productId, icon, category, name, variety, className, textClassName }) {
+export default function ProductImage({ productId, icon, category, name, variety, className }) {
   const localSrc = isImageUrl(icon) ? icon : productImageOf(productId);
   const commoditySrc = commodityImageOf(name ?? productId);
   const [fetchedUrl, setFetchedUrl] = useState('');
@@ -62,10 +62,6 @@ export default function ProductImage({ productId, icon, category, name, variety,
         gradient,
         className
       )}
-    >
-      <span className={cn('text-3xl', textClassName)} role="img" aria-label={name}>
-        {icon ?? '🌱'}
-      </span>
-    </div>
+    />
   );
 }
