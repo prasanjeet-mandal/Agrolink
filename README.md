@@ -8,9 +8,8 @@ Agrolink connects farmers, FPOs (farmer producer organisations), buyers and logi
 | --- | --- | --- |
 | `frontend/` | **Implemented** | React 18 + Vite single-page app (all 14 feature modules, mock-first) |
 | `backend/` | **Implemented** | Spring Boot API (auth, marketplace, orders, payments, logistics, AI proxy) |
-| `ai-service/` | Removed temporarily | FastAPI service for crop, demand, yield prediction and chatbot responses (backend keeps rule-based fallbacks) |
+| `ai-service/ml-service/` | **Implemented** | FastAPI AgroLink ML service (price/demand/supply prediction via trained joblib models) |
 | `optimization-service/` | **Implemented** | FastAPI nearest-neighbor route optimizer with capacity validation |
-| `ai-service/agromarket-ml/` | Removed temporarily | Standalone AgroMarket ML project (price/arrival/demand/matching/route), datasets + trained models |
 | `docs/` | Empty | `api`, `architecture`, `requirements`, `research` |
 | `tests/` | Empty | `e2e`, `integration`, `performance` (planned) |
 | `data/`, `scripts/` | Empty | Shared data / automation |
@@ -19,10 +18,11 @@ The frontend runs fully standalone today using an in-browser mock layer — no s
 
 ## Tech stack
 
-- **Frontend**: React 18, Vite 5, Tailwind CSS, Radix UI (shadcn-style components), Recharts, React Router v6, Axios
+- **Frontend**: React 18, Vite 5, Tailwind CSS, Radix UI (shadcn-style components), Recharts, React Router v6, Axios, Google Identity Services (OAuth), browser Geolocation + BigDataCloud/Nominatim reverse geocoding
 - **Backend**: Spring Boot 4.1.1, Spring Security + JWT, Spring Data JPA, Springdoc OpenAPI, MySQL 8
 - **Optimization service**: FastAPI + Pydantic (haversine nearest-neighbor routing)
-- **Infra**: Docker Compose (MySQL, backend nginx, frontend nginx)
+- **ML service**: FastAPI + joblib/pandas (trained price/demand/supply models)
+- **Infra**: Docker Compose (MySQL, backend nginx, frontend nginx) (optional)
 
 ## Getting started (frontend, mock-only)
 
@@ -44,7 +44,7 @@ cd backend
 # http://localhost:8080   (Swagger UI: http://localhost:8080/swagger-ui.html)
 ```
 
-Requires JDK 21+. Tests: `.\mvnw.cmd test`.
+Requires JDK 21+ (tested on Java 25). Tests: `.\mvnw.cmd test`.
 
 Key configuration (environment variables, see `backend/src/main/resources/application.properties`):
 
@@ -83,20 +83,19 @@ Mock-based tests (`OtpServiceImplTest`) cover send/verify/expiry/attempt-limit/r
 
 ## Run the AI service
 
-> **Removed temporarily.** The `ai-service/` directory is not part of this checkout.
-> The Spring Boot backend still exposes `/api/ai/*` endpoints and returns rule-based
-> fallbacks (crop/demand/yield predictions and a marketplace-aware chatbot) when
-> the Python service at `AI_URL` is unavailable, so nothing breaks without it.
-
-When the service is restored, run it with:
+The ML service lives under `ai-service/ml-service/`. It serves price, demand and supply
+predictions from pre-trained `joblib` models. The Spring Boot backend at `AI_URL`
+proxies to it and falls back to rule-based predictions when it is unavailable.
 
 ```bash
-cd ai-service
-python -m pip install -r requirements.txt
-python run.py                  # http://localhost:8000
+cd ai-service/ml-service
+python -m pip install -r app/requirements.txt   # if requirements are hosted in app/
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000    # http://localhost:8000
 ```
 
-Endpoints: `GET /health`, `POST /predict/crop`, `POST /predict/demand`, `POST /predict/yield`, `POST /chat`. The Spring Boot backend calls these via `AI_URL`.
+Endpoints: `GET /`, `POST /predict` (price/demand/supply based on market, category, product
+and arrival/demand tonnes), plus model-training scripts under `app/ml/`
+(`train_price.py`, `train_demand.py`, `train_supply.py`).
 
 ## Run the optimization service
 
@@ -107,22 +106,6 @@ python run.py                  # http://localhost:8001
 ```
 
 Endpoints: `GET /health`, `POST /optimize/route`. Route requests accept stops, optional `vehicleCapacity`, `averageSpeedKph` and `returnToStart`; demand over capacity returns `422`.
-
-## AgroMarket ML project
-
-> **Removed temporarily.** The standalone AgroMarket ML project lived under
-> `ai-service/agromarket-ml/` (price/arrival/demand/matching/route services and
-> trained models) and is not part of this checkout.
-
-When restored:
-
-```bash
-cd ai-service/agromarket-ml
-python -m pip install -r requirements.txt
-python -m uvicorn api.main:app --host 0.0.0.0 --port 8002   # http://localhost:8002
-```
-
-Health: `GET /health`. Tests: `python -m pytest tests`.
 
 ## Run everything with Docker Compose
 
@@ -148,8 +131,25 @@ Password for every demo account is `secret`. The login page also has one-tap fil
 | Consumer | `meera@example.com` | Browse marketplace, cart + checkout, orders, track/delivery confirm, pay, chatbot |
 | Farmer | `harpreet@example.com` | Dashboard stats, list/edit products, incoming orders + confirm, payments, pricing/demand forecasts |
 | FPO | `fpo.punjab@example.com` | FPO dashboard/profile, manage products, buy (procurement) and sell, incoming/outgoing orders, payments |
+| Delivery partner | `dp.gurmeet@example.com` | My shipments list (auto-created deliveries), self-assign shipments, update status → propagates to order lifecycle |
+| Admin | `admin@example.com` | Admin stats, all orders, reviews moderation |
 
-Route landing per role: consumer → `/marketplace`, farmer → `/producer/farmer/dashboard`, FPO → `/producer/fpo/dashboard`.
+Route landing per role: consumer → `/marketplace`, farmer → `/producer/farmer/dashboard`, FPO → `/producer/fpo/dashboard`, delivery partner → `/partner/logistics`, admin → `/admin`.
+
+## Current capabilities
+
+- **Real marketplace listings only** — the marketplace shows listings created by real
+  sellers; no demo products are seeded. (A `MOCK_MODE` in-browser layer still powers the
+  frontend when run standalone.)
+- **Real-time location auto-detect** — sellers can capture their pickup address and buyers
+  their delivery address via browser GPS (`navigator.geolocation`) with reverse-geocoding
+  (BigDataCloud + Nominatim fallback), filling latitude/longitude and pincode automatically.
+- **Logistics automation** — placing an order auto-creates a logistics record (pickup/drop
+  from product + shipping address, coordinates included); the status lifecycle
+  `CREATED → ASSIGNED → PICKED_UP → IN_TRANSIT → DELIVERED` drives the order lifecycle
+  (`PENDING → READY_FOR_SHIPMENT → IN_TRANSIT → DELIVERED`).
+- **Google Sign-In** — OAuth login via Google Identity Services (origin allowlisted for the
+  current dev/ngrok URL in Google Cloud Console).
 
 ## Feature modules
 
@@ -177,7 +177,7 @@ All routes under Spring Boot at `localhost:8080`:
 
 | Domain | Routes |
 | --- | --- |
-| Auth | `POST /api/auth/register`, `/login`, `/me`, `/otp/send`, `/otp/verify`, `/forgot-password`, `/reset-password` |
+| Auth | `POST /api/auth/register`, `/login`, `/me`, `/otp/send`, `/otp/verify`, `/forgot-password`, `/reset-password`, `/google` |
 | Users | `GET /api/users/me`, `/me/profile`, `/{id}/public` |
 | Marketplace | `GET/POST/PUT/DELETE /api/products`, `GET /api/products/search|mine`; `GET/POST/PUT/DELETE /api/categories`; reviews |
 | Cart | `GET /api/cart`, `POST /api/cart/items`, `PUT/DELETE /api/cart/items/{id}`, `DELETE /api/cart` |
@@ -216,10 +216,10 @@ backend/src/main/java/com/agrolink
   ai/          AI-service client (crop/demand/yield/chat)
 ```
 
-- **Mock layer**: `mocks/data.js` seeds ready-to-use demo data (users, 20+ products, price/demand forecasts, shipments, payments). `mocks/db.js` implements `list/get/create/update*` used by every service, so the UI is fully interactive offline. Toggle `MOCK_MODE` (`frontend/src/mocks/db.js`) to call live services.
+- **Mock layer**: for standalone frontend runs only — `mocks/data.js` seeds demo data (users, 15 products, price/demand forecasts, shipments, payments). `mocks/db.js` implements `list/get/create/update*` used by every service, so the UI is fully interactive offline. Toggle `MOCK_MODE` (`frontend/src/mocks/db.js`, default `true`) to call live services; against the real backend the marketplace shows only seller-created listings.
 - **Vite proxies** (dev only): `/api` → `localhost:8080` (Spring Boot), `/optimize` → `localhost:8001`.
 - **Design**: Tailwind CSS utility styling with a custom shadcn/ui-style component set. Dark-mode class toggle supported.
-- **Status model**: orders flow `PENDING → CONFIRMED → PROCESSING → READY_FOR_SHIPMENT → OUT_FOR_DELIVERY → IN_TRANSIT → DELIVERED` (or `CANCELLED`); payments `PENDING → COMPLETED → RELEASED`.
+- **Status model**: orders flow `PENDING → READY_FOR_SHIPMENT → IN_TRANSIT → DELIVERED` (or cancelled/returned); driven by the logistics lifecycle (`CREATED → ASSIGNED → PICKED_UP → IN_TRANSIT → DELIVERED`). Payments `PENDING → COMPLETED → RELEASED`.
 
 ## Verification
 
@@ -232,13 +232,15 @@ cd ../backend
 ./mvnw test    # Spring Boot context test (needs local MySQL)
 ```
 
-### Status (verified 2026-09-15)
+### Status (verified 2026-09-16)
 
 | Component | Check | Result |
 | --- | --- | --- |
 | Frontend | `npm run lint` | PASS (0 errors / warnings) |
-| Frontend | `npm run build` | PASS (2640 modules; non-blocking chunk-size warning only) |
+| Frontend | `npm run build` | PASS (vite production build) |
 | Backend | `./mvnw test` · `AgroLinkApplicationTests` | PASS (context loads against MySQL 8.0.46) |
+| Backend | `./mvnw clean compile` (JDK 25) | PASS |
 | Optimization | `/health`, `/optimize/route`, capacity-exceeded → 422 | 3/3 PASS |
+| Delivery e2e | product → order → logistics auto-create → assign → status propagation | PASS (via API scripts) |
 
 `tests/e2e`, `tests/integration`, `tests/performance` are reserved for future integration suites.
