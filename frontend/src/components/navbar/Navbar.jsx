@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ThemeToggle from '@/components/common/ThemeToggle';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import { useLanguage } from '@/i18n/LanguageContext';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -18,6 +20,7 @@ import { ROLES, ROLE_LABELS } from '@/constants/roles';
 
 export default function Navbar({ onMenuClick }) {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const isFocusedRole = user?.role === ROLES.DELIVERY_PARTNER || user?.role === ROLES.ADMIN;
   const { itemCount } = useCartContext();
   const { toast } = useToast();
@@ -36,7 +39,7 @@ export default function Navbar({ onMenuClick }) {
 
   const handleLogout = () => {
     logout();
-    toast({ title: 'Logged out', description: 'See you next harvest.', variant: 'info' });
+    toast({ title: t('ui.loggedOut'), description: t('ui.logoutMsg'), variant: 'info' });
     navigate('/login');
   };
 
@@ -64,7 +67,7 @@ export default function Navbar({ onMenuClick }) {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search produce, e.g. basmati, turmeric…"
+            placeholder={t('ui.searchPlaceholder')}
             className="pl-9"
           />
         </form>
@@ -72,6 +75,7 @@ export default function Navbar({ onMenuClick }) {
 
       <div className={cn('ml-auto flex items-center gap-1.5', isFocusedRole ? '' : 'md:ml-2')}>
         <ThemeToggle />
+        <LanguageSwitcher />
 
         {!isFocusedRole ? (
           <Link to="/consumer/cart" className="relative" aria-label="Cart">
@@ -88,14 +92,14 @@ export default function Navbar({ onMenuClick }) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Notifications">
+            <Button variant="ghost" size="icon" aria-label={t('ui.notifications')}>
               <Bell className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-72">
-            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('ui.notifications')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <div className="px-2 py-1 text-sm text-muted-foreground">No new notifications</div>
+            <div className="px-2 py-1 text-sm text-muted-foreground">{t('ui.noNotifications')}</div>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -106,7 +110,7 @@ export default function Navbar({ onMenuClick }) {
                 <AvatarFallback className="bg-primary/15 text-primary">{initials}</AvatarFallback>
               </Avatar>
               <span className="hidden max-w-28 truncate text-sm font-medium lg:block">
-                {user?.name ?? 'Guest'}
+                {user?.name ?? t('ui.guest')}
               </span>
             </Button>
           </DropdownMenuTrigger>
@@ -114,20 +118,20 @@ export default function Navbar({ onMenuClick }) {
             <DropdownMenuLabel>
               {user?.name}
               <span className="block text-xs font-normal text-muted-foreground">
-                {user ? ROLE_LABELS[user.role] : 'Not signed in'}
+                {user ? t(ROLE_LABELS[user.role]) : t('ui.notSignedIn')}
               </span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {user ? (
               <DropdownMenuItem onClick={() => navigate('/profile')}>
-                <UserCircle2 /> My profile
+                <UserCircle2 /> {t('ui.myProfile')}
               </DropdownMenuItem>
             ) : null}
             <DropdownMenuItem
               onClick={handleLogout}
               className="text-destructive focus:text-destructive"
             >
-              <LogOut /> Log out
+              <LogOut /> {t('ui.logOut')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

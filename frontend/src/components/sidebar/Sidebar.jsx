@@ -2,8 +2,10 @@ import { NavLink } from 'react-router-dom';
 import { cn } from '@/utils/cn';
 import { NAVIGATION } from '@/constants/navigation';
 import { ROLES } from '@/constants/roles';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function Sidebar({ role, open, onClose }) {
+  const { t } = useLanguage();
   const groups = NAVIGATION[role] ?? [];
 
   return (
@@ -25,7 +27,7 @@ export default function Sidebar({ role, open, onClose }) {
           {groups.map((group) => (
             <div key={group.title}>
               <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {group.title}
+                {t(group.title)}
               </p>
               <ul className="space-y-1">
                 {group.items.map((item) => (
@@ -44,7 +46,7 @@ export default function Sidebar({ role, open, onClose }) {
                       }
                     >
                       <item.icon className="h-4 w-4 shrink-0 group-hover:scale-110" />
-                      {item.label}
+                      {t(item.label)}
                     </NavLink>
                   </li>
                 ))}
