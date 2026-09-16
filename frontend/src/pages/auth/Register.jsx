@@ -10,6 +10,7 @@ import { FormField } from '@/components/forms';
 import { validateForm, required, isEmail, validatePhoneE164, validatePassword, validateConfirmPassword } from '@/utils/validation';
 import { ROLES, ROLE_LABELS, ROLE_ROUTES } from '@/constants/roles';
 import GoogleSignIn from '@/components/auth/GoogleSignIn';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const REGISTRABLE_ROLES = [
   ROLES.CONSUMER,
@@ -20,6 +21,7 @@ const REGISTRABLE_ROLES = [
 
 export default function Register() {
   const { register } = useAuth();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -64,8 +66,8 @@ export default function Register() {
       const account = await register({ ...values, role });
       navigate(ROLE_ROUTES[account.role]);
       toast({
-        title: 'Account created',
-        description: `Welcome to Agrolink, ${account.name}`,
+        title: t('auth.accountCreated'),
+        description: t('auth.welcomeAgrolink').replace('{name}', account.name),
         variant: 'success',
       });
     } catch (err) {
@@ -82,12 +84,12 @@ export default function Register() {
           <Sprout className="h-6 w-6" />
         </span>
         <CardTitle className="agrolink-text-gradient text-2xl">
-          {roleLocked ? `Join as ${ROLE_LABELS[initialRole]}` : 'Create your account'}
+          {roleLocked ? t('auth.joinAs').replace('{role}', t(ROLE_LABELS[initialRole])) : t('auth.createYourAccount')}
         </CardTitle>
         <CardDescription>
           {roleLocked
-            ? `You're registering as a ${ROLE_LABELS[initialRole]}.`
-            : 'Create your account to buy and sell fresh produce.'}
+            ? t('auth.registeringAs').replace('{role}', t(ROLE_LABELS[initialRole]))
+            : t('auth.createAccountDesc')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -102,51 +104,51 @@ export default function Register() {
 
           <div className="relative flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
             <span className="h-px flex-1 bg-muted" />
-            <span>or continue with email</span>
+            <span>{t('auth.orContinueEmail')}</span>
             <span className="h-px flex-1 bg-muted" />
           </div>
 
-          <FormField label="Full name" required error={errors.name} htmlFor="name">
+          <FormField label={t('auth.fullName')} required error={errors.name} htmlFor="name">
             <div className="relative">
               <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input id="name" value={values.name} onChange={set('name')} placeholder="Your full name" autoComplete="name" className="pl-9" autoFocus />
+              <Input id="name" value={values.name} onChange={set('name')} placeholder={t('auth.fullNamePlaceholder')} autoComplete="name" className="pl-9" autoFocus />
             </div>
           </FormField>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Email" required error={errors.email} htmlFor="email">
+            <FormField label={t('auth.email')} required error={errors.email} htmlFor="email">
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="email" type="email" value={values.email} onChange={set('email')} placeholder="Enter your email address" autoComplete="email" className="pl-9" />
+                <Input id="email" type="email" value={values.email} onChange={set('email')} placeholder={t('auth.emailPlaceholder')} autoComplete="email" className="pl-9" />
               </div>
             </FormField>
-            <FormField label="Phone" required error={errors.phone} htmlFor="phone">
+            <FormField label={t('auth.phone')} required error={errors.phone} htmlFor="phone">
               <div className="relative">
                 <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="phone" type="tel" inputMode="tel" value={values.phone} onChange={set('phone')} placeholder="Enter your mobile number" autoComplete="tel-national" maxLength={15} className="pl-9" />
+                <Input id="phone" type="tel" inputMode="tel" value={values.phone} onChange={set('phone')} placeholder={t('auth.phonePlaceholder')} autoComplete="tel-national" maxLength={15} className="pl-9" />
               </div>
             </FormField>
           </div>
 
           {role === ROLES.DELIVERY_PARTNER ? (
             <div className="grid gap-4 rounded-lg border border-primary/20 bg-primary/5 p-4 sm:grid-cols-2">
-              <FormField label="Vehicle number" required error={errors.vehicleNumber} htmlFor="vehicleNumber">
+              <FormField label={t('auth.vehicleNumber')} required error={errors.vehicleNumber} htmlFor="vehicleNumber">
                 <div className="relative">
                   <Car className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="vehicleNumber" value={values.vehicleNumber} onChange={set('vehicleNumber')} placeholder="Enter vehicle registration number" className="pl-9" />
+                  <Input id="vehicleNumber" value={values.vehicleNumber} onChange={set('vehicleNumber')} placeholder={t('auth.vehiclePlaceholder')} className="pl-9" />
                 </div>
               </FormField>
-              <FormField label="Driving licence number" required error={errors.drivingLicense} htmlFor="drivingLicense">
+              <FormField label={t('auth.drivingLicence')} required error={errors.drivingLicense} htmlFor="drivingLicense">
                 <div className="relative">
                   <IdCard className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="drivingLicense" value={values.drivingLicense} onChange={set('drivingLicense')} placeholder="Enter driving licence number" className="pl-9" />
+                  <Input id="drivingLicense" value={values.drivingLicense} onChange={set('drivingLicense')} placeholder={t('auth.drivingLicencePlaceholder')} className="pl-9" />
                 </div>
               </FormField>
             </div>
           ) : null}
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Password" required error={errors.password} htmlFor="password">
+            <FormField label={t('auth.password')} required error={errors.password} htmlFor="password">
               <div className="relative">
                 <Input
                   id="password"
@@ -161,15 +163,15 @@ export default function Register() {
                   type="button"
                   onClick={() => setShowPassword((s) => !s)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="pt-1.5 text-xs text-muted-foreground">At least 8 characters with letters &amp; numbers</p>
+              <p className="pt-1.5 text-xs text-muted-foreground">{t('auth.passwordHint')}</p>
             </FormField>
-            <FormField label="Confirm password" required error={errors.confirmPassword} htmlFor="confirmPassword">
+            <FormField label={t('auth.confirmPassword')} required error={errors.confirmPassword} htmlFor="confirmPassword">
               <div className="relative">
                 <Input
                   id="confirmPassword"
@@ -184,7 +186,7 @@ export default function Register() {
                   type="button"
                   onClick={() => setShowConfirm((s) => !s)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                  aria-label={showConfirm ? t('auth.hidePassword') : t('auth.showPassword')}
                   tabIndex={-1}
                 >
                   {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -195,18 +197,18 @@ export default function Register() {
 
           <Button type="submit" className="w-full" size="lg" disabled={submitting}>
             {submitting ? <Loader2 className="animate-spin" /> : <UserRound className="h-4 w-4" />}
-            {submitting ? 'Creating account…' : 'Create account'}
+            {submitting ? t('auth.creatingAccount') : t('auth.createAccountBtn')}
           </Button>
         </form>
 
         <div className="border-t pt-3">
           <p className="text-center text-sm text-muted-foreground">
-            Already registered?{' '}
+            {t('auth.alreadyRegistered')}{' '}
             <Link
               to={roleLocked ? `/login?role=${initialRole}` : '/login'}
               className="font-semibold text-primary hover:underline"
             >
-              Sign in
+              {t('auth.signInLink')}
             </Link>
           </p>
         </div>

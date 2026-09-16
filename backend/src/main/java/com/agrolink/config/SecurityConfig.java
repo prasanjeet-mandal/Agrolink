@@ -28,7 +28,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableMethodSecurity
-@EnableConfigurationProperties({JwtConfig.class, OtpConfig.class, GoogleConfig.class})
+@EnableConfigurationProperties({JwtConfig.class, OtpConfig.class, GoogleConfig.class, ImageConfig.class})
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -98,6 +98,7 @@ public class SecurityConfig {
                         "/api/auth/forgot-password",
                         "/api/auth/reset-password",
                         "/api/ai/chat",
+                        "/api/images",
                         "/api/health/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html",

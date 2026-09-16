@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react';
 import { cn } from '@/utils/cn';
 import { productImageOf } from '@/constants/productImages';
+import { commodityImageOf } from '@/constants/commodityImages';
+import { resolveProductImage } from '@/services/productImageService';
 
 const gradientByCategory = {
   'Grains & Pulses': 'from-amber-200/70 to-yellow-100',
@@ -12,11 +15,45 @@ const gradientByCategory = {
 
 const isImageUrl = (v) => typeof v === 'string' && (v.startsWith('/') || v.startsWith('http'));
 
-export default function ProductImage({ productId, icon, category, name, className, textClassName }) {
-  const src = isImageUrl(icon) ? icon : productImageOf(productId);
+export default function ProductImage({ productId, icon, category, name, variety, className, textClassName }) {
+  const localSrc = isImageUrl(icon) ? icon : productImageOf(productId);
+  const commoditySrc = commodityImageOf(name ?? productId);
+  const [fetchedUrl, setFetchedUrl] = useState('');
+  const [failed, setFailed] = useState(false);
+
+  const shouldAutoFetch = !localSrc && !commoditySrc && !failed;
+
+  useEffect(() => {
+    if (!shouldAutoFetch) return;
+
+    let cancelled = false;
+    resolveProductImage({ productId, name, category, variety })
+      .then((url) => {
+        if (!cancelled && url) setFetchedUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [shouldAutoFetch, productId, name, category, variety]);
+
+  const src = localSrc ?? commoditySrc ?? fetchedUrl;
+
   if (src) {
-    return <img src={src} alt={name ?? productId} loading="lazy" className={cn('object-cover', className)} />;
+    return (
+      <img
+        src={src}
+        alt={name ?? productId ?? 'Product'}
+        loading="lazy"
+        onError={localSrc ? undefined : () => setFailed(true)}
+        className={cn('object-cover', className)}
+      />
+    );
   }
+
   const gradient = gradientByCategory[category] ?? 'from-secondary to-muted';
   return (
     <div

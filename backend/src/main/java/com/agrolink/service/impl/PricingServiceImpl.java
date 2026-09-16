@@ -4,6 +4,7 @@ import com.agrolink.dto.pricing.*;
 import com.agrolink.entity.Product;
 import com.agrolink.enums.ProductStatus;
 import com.agrolink.repository.ProductRepository;
+import com.agrolink.service.MlClient;
 import com.agrolink.service.PricingService;
 
 import org.springframework.stereotype.Service;
@@ -19,38 +20,81 @@ import java.util.Random;
 @Service
 public class PricingServiceImpl implements PricingService {
 
-    private final ProductRepository products;
+    private static final double QTL_TO_KG = 100.0;
 
-    public PricingServiceImpl(ProductRepository products) {
+    private final ProductRepository products;
+    private final MlClient ml;
+
+    public PricingServiceImpl(ProductRepository products, MlClient ml) {
         this.products = products;
+        this.ml = ml;
     }
 
     public PriceForecastResponse forecast(Long productId) {
         Product p = products.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
-        BigDecimal base = p.getPrice();
-        Random rnd = new Random(productId * 31);
+        double basePerKg = p.getPrice() == null ? 0 : p.getPrice().doubleValue();
+        double baseQtl = basePerKg * QTL_TO_KG;
         LocalDateTime now = LocalDateTime.now();
+        MlClient.Base base = new MlClient.Base(districtOf(p.getLocation()), categoryOf(p), nameOf(p));
 
+        try {
+            List<PriceForecastResponse.Point> history = new ArrayList<>();
+            for (int i = 5; i >= 0; i--) {
+                int month = now.minusMonths(i).getMonthValue();
+                double lag = i == 5 ? baseQtl : history.get(history.size() - 1).value() * QTL_TO_KG;
+                double qtl = ml.predictPrice(base, baseQtl, month, lag)
+                        .orElseThrow(() -> new RuntimeException("ML price unavailable"));
+                history.add(new PriceForecastResponse.Point(now.minusMonths(i), round2(qtl / QTL_TO_KG)));
+            }
+            List<PriceForecastResponse.Point> forecast = new ArrayList<>();
+            double lag = history.get(history.size() - 1).value() * QTL_TO_KG;
+            for (int i = 1; i <= 6; i++) {
+                int month = now.plusMonths(i).getMonthValue();
+                double qtl = ml.predictPrice(base, baseQtl, month, lag)
+                        .orElseThrow(() -> new RuntimeException("ML price unavailable"));
+                lag = qtl;
+                forecast.add(new PriceForecastResponse.Point(now.plusMonths(i), round2(qtl / QTL_TO_KG)));
+            }
+            return new PriceForecastResponse(
+                    p.getId(), p.getName(), p.getUnit(),
+                    BigDecimal.valueOf(basePerKg).setScale(2, RoundingMode.HALF_UP),
+                    history, forecast, 0.86);
+        } catch (RuntimeException e) {
+            // ai-service offline -> deterministic fallback anchored on the listing price.
+            return fallback(p, basePerKg, now);
+        }
+    }
+
+    private PriceForecastResponse fallback(Product p, double base, LocalDateTime now) {
+        Random rnd = new Random(p.getId() * 31);
         List<PriceForecastResponse.Point> history = new ArrayList<>();
         for (int i = 5; i >= 0; i--) {
-            double v = round2(base.doubleValue() * (1 + (rnd.nextDouble() - 0.45) * 0.12));
+            double v = round2(base * (1 + (rnd.nextDouble() - 0.45) * 0.12));
             history.add(new PriceForecastResponse.Point(now.minusMonths(i), v));
         }
         List<PriceForecastResponse.Point> forecast = new ArrayList<>();
         for (int i = 1; i <= 6; i++) {
-            double v = round2(base.doubleValue() * (1 + (rnd.nextDouble() - 0.42) * 0.16));
+            double v = round2(base * (1 + (rnd.nextDouble() - 0.42) * 0.16));
             forecast.add(new PriceForecastResponse.Point(now.plusMonths(i), v));
         }
-
         return new PriceForecastResponse(
-                p.getId(),
-                p.getName(),
-                p.getUnit(),
-                base,
-                history,
-                forecast,
-                0.86
-        );
+                p.getId(), p.getName(), p.getUnit(),
+                BigDecimal.valueOf(base).setScale(2, RoundingMode.HALF_UP),
+                history, forecast, 0.86);
+    }
+
+    private String districtOf(String location) {
+        if (location == null) return "Roorkee APMC";
+        return location.split(",")[0].trim();
+    }
+
+    private String categoryOf(Product p) {
+        return p.getCategory() == null ? "Vegetables" : p.getCategory().getName();
+    }
+
+    private String nameOf(Product p) {
+        String n = p.getName() == null ? "" : p.getName();
+        return n.length() > 28 ? n.substring(0, 28) : n;
     }
 
     public PriceCalculateResponse calculate(PriceCalculateRequest r) {

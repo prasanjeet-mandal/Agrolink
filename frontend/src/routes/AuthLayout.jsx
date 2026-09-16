@@ -3,15 +3,17 @@ import { BadgeCheck, Handshake, LineChart, Sprout, Truck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const PERKS = [
-  { icon: BadgeCheck, text: 'Verified farmers & FPOs' },
-  { icon: LineChart, text: 'Live mandi price trends' },
-  { icon: Truck, text: 'Farm-to-market logistics' },
-  { icon: Handshake, text: 'Direct, fair pricing' },
+  { icon: BadgeCheck, text: 'auth.perkVerified' },
+  { icon: LineChart, text: 'auth.perkTrends' },
+  { icon: Truck, text: 'auth.perkLogistics' },
+  { icon: Handshake, text: 'auth.perkPricing' },
 ];
 
 export default function AuthLayout() {
+  const { t } = useLanguage();
   return (
     <div className="agrolink-page-in flex min-h-screen bg-background text-foreground">
       <aside className="relative hidden w-[46%] overflow-hidden lg:block">
@@ -38,12 +40,10 @@ export default function AuthLayout() {
 
           <div className="mt-auto space-y-7">
             <h2 className="text-3xl font-extrabold leading-tight sm:text-4xl">
-              Fresh produce,<br />
-              straight from the farm.
+              {t('auth.headline')}
             </h2>
             <p className="max-w-md text-base text-white/75">
-              One platform for farmers, FPOs and buyers — pricing, logistics, payments and market
-              intelligence in a single place.
+              {t('auth.tagline')}
             </p>
             <ul className="grid gap-3">
               {PERKS.map((p) => (
@@ -51,22 +51,22 @@ export default function AuthLayout() {
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 backdrop-blur">
                     <p.icon className="h-4 w-4 text-emerald-300" />
                   </span>
-                  {p.text}
+                  {t(p.text)}
                 </li>
               ))}
             </ul>
             <div className="flex gap-8 border-t border-white/15 pt-5 text-sm">
               <div>
                 <p className="text-2xl font-extrabold">12k+</p>
-                <p className="text-white/60">Farmers onboard</p>
+                <p className="text-white/60">{t('auth.farmersOnboard')}</p>
               </div>
               <div>
                 <p className="text-2xl font-extrabold">40+</p>
-                <p className="text-white/60">Mandi markets</p>
+                <p className="text-white/60">{t('auth.mandiMarkets')}</p>
               </div>
               <div>
                 <p className="text-2xl font-extrabold">24–48h</p>
-                <p className="text-white/60">Delivery window</p>
+                <p className="text-white/60">{t('auth.deliveryWindow')}</p>
               </div>
             </div>
           </div>
@@ -113,7 +113,7 @@ export default function AuthLayout() {
           <div className="mt-6 text-center">
             <Button asChild variant="glass" size="sm">
               <Link to="/" className="gap-1 text-muted-foreground">
-                <Sprout className="h-4 w-4" /> Back to home
+                <Sprout className="h-4 w-4" /> {t('auth.backToHome')}
               </Link>
             </Button>
           </div>

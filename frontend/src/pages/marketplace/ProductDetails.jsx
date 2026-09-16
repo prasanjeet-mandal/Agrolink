@@ -54,6 +54,14 @@ export default function ProductDetails({ requestQuoteTo = null }) {
   }
 
   const handleAdd = () => {
+    if (Number(product.stockQuantity ?? 0) <= 0) {
+      toast({
+        title: 'Out of stock',
+        description: `${product.name} is currently unavailable.`,
+        variant: 'destructive',
+      });
+      return;
+    }
     addItem(product, quantity);
     toast({
       title: 'Added to cart',
@@ -61,6 +69,8 @@ export default function ProductDetails({ requestQuoteTo = null }) {
       variant: 'success',
     });
   };
+
+  const outOfStock = Number(product.stockQuantity ?? 0) <= 0;
 
   const requestLink = requestQuoteTo
     ? requestQuoteTo.replace(':productId', product.id)
@@ -95,7 +105,12 @@ export default function ProductDetails({ requestQuoteTo = null }) {
           <ul className="space-y-2 text-sm">
             <li className="flex items-center gap-2 text-muted-foreground">
               <PackageCheck className="h-4 w-4 text-primary" />
-              Available: <strong className="text-foreground">{product.stockQuantity.toLocaleString('en-IN')} {product.unit}</strong>
+              Available:{' '}
+              {outOfStock ? (
+                <Badge variant="destructive">Out of stock</Badge>
+              ) : (
+                <strong className="text-foreground">{product.stockQuantity.toLocaleString('en-IN')} {product.unit}</strong>
+              )}
             </li>
             <li className="flex items-center gap-2 text-muted-foreground">
               <Truck className="h-4 w-4 text-primary" />
@@ -137,16 +152,24 @@ export default function ProductDetails({ requestQuoteTo = null }) {
           </Card>
 
           <div className="flex flex-wrap items-center gap-3">
-            <QuantityInput
-              value={quantity}
-              onChange={setQuantity}
-              min={product.minOrderQuantity ?? 1}
-              max={product.stockQuantity}
-              size="lg"
-            />
-            <Button size="lg" onClick={handleAdd} className="gap-2">
-              <ShoppingCart className="h-4 w-4" /> Add to cart
-            </Button>
+            {outOfStock ? (
+              <Button size="lg" disabled className="gap-2">
+                <ShoppingCart className="h-4 w-4" /> Out of stock
+              </Button>
+            ) : (
+              <>
+                <QuantityInput
+                  value={quantity}
+                  onChange={setQuantity}
+                  min={product.minOrderQuantity ?? 1}
+                  max={product.stockQuantity}
+                  size="lg"
+                />
+                <Button size="lg" onClick={handleAdd} className="gap-2">
+                  <ShoppingCart className="h-4 w-4" /> Add to cart
+                </Button>
+              </>
+            )}
             <Button asChild variant="outline" size="lg">
               <Link to={requestLink}>Request bulk quote</Link>
             </Button>

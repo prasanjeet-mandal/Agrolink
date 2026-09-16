@@ -7,11 +7,12 @@ import com.agrolink.enums.OrderStatus;
 import com.agrolink.repository.OrderRepository;
 import com.agrolink.repository.ProductRepository;
 import com.agrolink.service.AiService;
+import com.agrolink.service.MlClient;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
 import java.text.DecimalFormat;
@@ -26,15 +27,18 @@ public class AiServiceImpl implements AiService {
     private final String url;
     private final ProductRepository products;
     private final OrderRepository orders;
+    private final MlClient ml;
 
     public AiServiceImpl(
             @Value("${app.ai.python-url:http://localhost:8000}") String url,
             ProductRepository products,
-            OrderRepository orders
+            OrderRepository orders,
+            MlClient ml
     ) {
         this.url = url;
         this.products = products;
         this.orders = orders;
+        this.ml = ml;
     }
 
     public CropPredictionResponse crop(CropPredictionRequest r) {
@@ -52,14 +56,23 @@ public class AiServiceImpl implements AiService {
     }
 
     public DemandPredictionResponse demand(DemandPredictionRequest r) {
-        try {
-            return RestClient.create(url).post().uri("/predict/demand").body(r).retrieve().body(DemandPredictionResponse.class);
-        } catch (Exception e) {
-            double d = r.historicalWeeklySales() * r.seasonalFactor();
-            return new DemandPredictionResponse(r.productName(), Math.round(d * 100) / 100.0,
-                    Math.round(Math.max(0, d - r.currentStock()) * 100) / 100.0,
-                    d > r.currentStock() ? "Reorder recommended" : "Current stock is sufficient");
+        int month = java.time.LocalDate.now().getMonthValue();
+        var base = new MlClient.Base("Roorkee APMC", "Vegetables", r.productName());
+        Optional<Double> predicted = ml.predictDemand(base, priceQtlOf(r), month, r.historicalWeeklySales());
+        if (predicted.isPresent()) {
+            double weekly = predicted.get();
+            double reorder = Math.round(Math.max(0, weekly - r.currentStock()) * 100) / 100.0;
+            return new DemandPredictionResponse(r.productName(), Math.round(weekly * 100) / 100.0, reorder,
+                    weekly > r.currentStock() * 0.8 ? "Reorder recommended — ai-service model" : "Current stock is sufficient — ai-service model");
         }
+        double d = r.historicalWeeklySales() * r.seasonalFactor();
+        return new DemandPredictionResponse(r.productName(), Math.round(d * 100) / 100.0,
+                Math.round(Math.max(0, d - r.currentStock()) * 100) / 100.0,
+                d > r.currentStock() ? "Reorder recommended" : "Current stock is sufficient");
+    }
+
+    private double priceQtlOf(DemandPredictionRequest r) {
+        return 90 * r.historicalWeeklySales() + 1000;
     }
 
     public YieldPredictionResponse yield(YieldPredictionRequest r) {

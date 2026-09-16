@@ -10,17 +10,19 @@ import { FormField } from '@/components/forms';
 import { validateForm, required, isEmail, isPhone } from '@/utils/validation';
 import { ROLES, ROLE_ROUTES } from '@/constants/roles';
 import GoogleSignIn from '@/components/auth/GoogleSignIn';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const ROLE_HEADING = {
-  [ROLES.CONSUMER]: 'Sign in as Buyer',
-  [ROLES.FARMER]: 'Sign in as Seller',
-  [ROLES.FPO]: 'Sign in as FPO',
-  [ROLES.DELIVERY_PARTNER]: 'Sign in as Delivery Partner',
-  [ROLES.ADMIN]: 'Sign in as Administrator',
+  [ROLES.CONSUMER]: 'auth.signInAsBuyer',
+  [ROLES.FARMER]: 'auth.signInAsSeller',
+  [ROLES.FPO]: 'auth.signInAsFpo',
+  [ROLES.DELIVERY_PARTNER]: 'auth.signInAsDelivery',
+  [ROLES.ADMIN]: 'auth.signInAsAdmin',
 };
 
 export default function Login() {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -56,7 +58,7 @@ export default function Login() {
       const user = await login({ email: values.email, password: values.password });
       const from = location.state?.from?.pathname;
       goToRole(user, from);
-      toast({ title: 'Welcome back', description: `Signed in as ${user.name}`, variant: 'success' });
+      toast({ title: t('auth.welcomeBackToast'), description: t('auth.signedInAs').replace('{name}', user.name), variant: 'success' });
     } catch (err) {
       setErrors({ form: err.message });
     } finally {
@@ -71,12 +73,12 @@ export default function Login() {
           <Sprout className="h-6 w-6" />
         </span>
         <CardTitle className="agrolink-text-gradient text-2xl">
-          {roleLocked ? ROLE_HEADING[paramRole] : 'Sign in'}
+          {roleLocked ? t(ROLE_HEADING[paramRole]) : t('auth.signIn')}
         </CardTitle>
         <CardDescription>
           {roleLocked
-            ? `Welcome back! Enter your credentials to continue.`
-            : 'Access your farm marketplace dashboard.'}
+            ? t('auth.welcomeBack')
+            : t('auth.signInDesc')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -86,21 +88,21 @@ export default function Login() {
               {errors.form}
             </p>
           ) : null}
-          <FormField label="Email or phone" required error={errors.email} htmlFor="email">
+          <FormField label={t('auth.emailOrPhone')} required error={errors.email} htmlFor="email">
             <div className="relative">
               <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="email"
                 value={values.email}
                 onChange={(e) => setValues((v) => ({ ...v, email: e.target.value }))}
-                placeholder="Enter your email or mobile number"
+                placeholder={t('auth.emailPhonePlaceholder')}
                 autoComplete="username"
                 className="pl-9"
                 autoFocus
               />
             </div>
           </FormField>
-          <FormField label="Password" required error={errors.password} htmlFor="password">
+          <FormField label={t('auth.password')} required error={errors.password} htmlFor="password">
             <div className="relative">
               <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -116,7 +118,7 @@ export default function Login() {
                 type="button"
                 onClick={() => setShowPassword((s) => !s)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -125,30 +127,30 @@ export default function Login() {
           </FormField>
           <div className="flex items-center justify-end text-sm">
             <Link to="/forgot-password" className="font-medium text-primary hover:underline">
-              Forgot password?
+              {t('auth.forgotPassword')}
             </Link>
           </div>
           <Button type="submit" className="w-full" size="lg" disabled={submitting}>
             {submitting ? <Loader2 className="animate-spin" /> : null}
-            {submitting ? 'Signing in…' : 'Sign in'}
+            {submitting ? t('auth.signingIn') : t('auth.signIn')}
           </Button>
         </form>
 
         <div className="relative flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
           <span className="h-px flex-1 bg-muted" />
-          <span>or</span>
+          <span>{t('auth.or')}</span>
           <span className="h-px flex-1 bg-muted" />
         </div>
 
         <GoogleSignIn mode="login" defaultRole={googleDefaultRole} onError={(msg) => setErrors((e) => ({ ...e, form: msg }))} />
 
         <p className="text-center text-sm text-muted-foreground">
-          New to Agrolink?{' '}
+          {t('auth.newToAgrolink')}{' '}
           <Link
             to={roleLocked ? `/register?role=${paramRole}` : '/register'}
             className="font-semibold text-primary hover:underline"
           >
-            Create an account
+            {t('auth.createAccount')}
           </Link>
         </p>
       </CardContent>
