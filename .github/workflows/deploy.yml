@@ -119,19 +119,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Validate deploy secrets
-        shell: bash
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-        run: |
-          : "${DEPLOY_HOST:?Missing repository/environment secret DEPLOY_HOST}"
-          : "${DEPLOY_USER:?Missing repository/environment secret DEPLOY_USER}"
-          : "${DEPLOY_SSH_KEY:?Missing repository/environment secret DEPLOY_SSH_KEY}"
-          : "${DEPLOY_PATH:?Missing repository/environment secret DEPLOY_PATH}"
-
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
