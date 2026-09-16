@@ -1,40 +1,111 @@
-import { mockDb, MOCK_MODE } from '@/mocks/db';
 import { httpGet, httpPost, httpPut, httpDelete } from '@/api/client';
 import { API } from '@/constants/apiEndpoints';
 
 export const productService = {
   async getAll() {
-    if (!MOCK_MODE) return httpGet(API.PRODUCTS.BASE);
-    return mockDb.listProducts();
+    const res = await httpGet(API.PRODUCTS.BASE);
+    return res.map(normalize);
   },
 
   async getById(productId) {
-    if (!MOCK_MODE) return httpGet(`${API.PRODUCTS.BASE}/${productId}`);
-    return mockDb.getProduct(productId);
+    const res = await httpGet(`${API.PRODUCTS.BASE}/${productId}`);
+    return normalize(res);
   },
 
-  async getMine(producerId) {
-    if (!MOCK_MODE) return httpGet(API.PRODUCTS.MY);
-    return mockDb.productsByProducer(producerId);
+  async getMine() {
+    const res = await httpGet(API.PRODUCTS.MY);
+    return res.map(normalize);
   },
 
   async getCategories() {
-    if (!MOCK_MODE) return httpGet(API.PRODUCTS.CATEGORIES);
-    return mockDb.getCategories();
+    const res = await httpGet(API.CATEGORIES.BASE);
+    return res.map((c) => c.name);
   },
 
   async create(product) {
-    if (!MOCK_MODE) return httpPost(API.PRODUCTS.BASE, product);
-    return { ...product, id: `pr${Date.now()}`, createdAt: new Date().toISOString(), status: 'ACTIVE' };
+    const res = await httpPost(API.PRODUCTS.BASE, await toRequest(product));
+    return normalize(res);
   },
 
   async update(productId, product) {
-    if (!MOCK_MODE) return httpPut(`${API.PRODUCTS.BASE}/${productId}`, product);
-    return { ...product, id: productId };
+    const res = await httpPut(`${API.PRODUCTS.BASE}/${productId}`, await toRequest(product));
+    return normalize(res);
   },
 
   async remove(productId) {
-    if (!MOCK_MODE) return httpDelete(`${API.PRODUCTS.BASE}/${productId}`);
-    return { id: productId };
+    return httpDelete(`${API.PRODUCTS.BASE}/${productId}`);
   },
 };
+
+function normalize(p) {
+  const location = parseLocation(p.location);
+  return {
+    id: p.id,
+    name: p.name,
+    icon: p.imageUrl ?? null,
+    category: p.categoryName ?? '',
+    variety: p.variety ?? p.name ?? '',
+    unit: p.unit ?? '',
+    pricePerUnit: Number(p.price ?? 0),
+    stockQuantity: Number(p.availableQuantity ?? 0),
+    minOrderQuantity: p.minOrderQuantity ?? 1,
+    description: p.description ?? '',
+    producerId: String(p.sellerId ?? ''),
+    producerName: p.sellerName ?? '',
+    producerType: p.sellerRole === 'FPO' ? 'FPO' : 'FARMER',
+    isFpo: p.sellerRole === 'FPO',
+    quality: p.quality ?? 'Standard',
+    certification: p.certification ?? [],
+    location,
+    producerRating: p.sellerRating ?? null,
+    producerVerified: p.sellerVerified ?? true,
+    producerDistrict: location.district,
+    producerState: location.state,
+    status: p.status ?? 'ACTIVE',
+    latitude: p.latitude ?? null,
+    longitude: p.longitude ?? null,
+    createdAt: p.createdAt ?? new Date().toISOString(),
+  };
+}
+
+const parseLocation = (loc) => {
+  if (!loc) return { state: '', district: '', village: '' };
+  if (typeof loc === 'object') {
+    return { state: loc.state ?? '', district: loc.district ?? '', village: loc.village ?? '' };
+  }
+  const parts = String(loc).split(',').map((s) => s.trim()).filter(Boolean);
+  return {
+    state: parts[parts.length - 1] ?? '',
+    district: parts[parts.length - 2] ?? '',
+    village: parts.slice(0, -2).join(' ') ?? '',
+  };
+};
+
+async function categoryIdOf(name) {
+  const list = await (await httpGet(API.CATEGORIES.BASE));
+  const match = list.find((c) => c.name.toLowerCase() === String(name ?? '').toLowerCase());
+  return match?.id ?? null;
+}
+
+async function toRequest(product) {
+  const categoryId = product.categoryId ?? (await categoryIdOf(product.category));
+  if (!categoryId) {
+    throw new Error(`Category "${product.category}" is not supported`);
+  }
+  return {
+    name: product.name,
+    description: product.description ?? '',
+    price: Number(product.pricePerUnit ?? product.price ?? 0),
+    unit: product.unit ?? 'kg',
+    availableQuantity: Number(product.stockQuantity ?? product.availableQuantity ?? 0),
+    imageUrl: product.image ?? product.imageUrl ?? null,
+    location: product.locationText?.trim()
+      ? product.locationText
+      : product.location?.state
+        ? [product.location.district, product.location.state].filter(Boolean).join(', ')
+        : (product.locationText ?? null),
+    latitude: product.latitude ?? null,
+    longitude: product.longitude ?? null,
+    categoryId,
+  };
+}

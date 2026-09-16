@@ -13,10 +13,12 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ROLE_LABELS } from '@/constants/roles';
+import { cn } from '@/utils/cn';
+import { ROLES, ROLE_LABELS } from '@/constants/roles';
 
 export default function Navbar({ onMenuClick }) {
   const { user, logout } = useAuth();
+  const isFocusedRole = user?.role === ROLES.DELIVERY_PARTNER || user?.role === ROLES.ADMIN;
   const { itemCount } = useCartContext();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -56,29 +58,33 @@ export default function Navbar({ onMenuClick }) {
         <img src="/assets/images/logo.png" alt="Agrolink" className="h-11 w-auto" />
       </Link>
 
-      <form onSubmit={onSearch} className="relative ml-auto hidden w-full max-w-sm md:block">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search produce, e.g. basmati, turmeric…"
-          className="pl-9"
-        />
-      </form>
+      {!isFocusedRole ? (
+        <form onSubmit={onSearch} className="relative ml-auto hidden w-full max-w-sm md:block">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search produce, e.g. basmati, turmeric…"
+            className="pl-9"
+          />
+        </form>
+      ) : null}
 
-      <div className="ml-auto flex items-center gap-1.5 md:ml-2">
+      <div className={cn('ml-auto flex items-center gap-1.5', isFocusedRole ? '' : 'md:ml-2')}>
         <ThemeToggle />
 
-        <Link to="/consumer/cart" className="relative" aria-label="Cart">
-          <Button variant="ghost" size="icon">
-            <ShoppingCart className="h-5 w-5" />
-          </Button>
-          {itemCount > 0 ? (
-            <Badge variant="destructive" className="absolute -right-0.5 -top-0.5 h-5 min-w-5 justify-center px-1">
-              {itemCount}
-            </Badge>
-          ) : null}
-        </Link>
+        {!isFocusedRole ? (
+          <Link to="/consumer/cart" className="relative" aria-label="Cart">
+            <Button variant="ghost" size="icon">
+              <ShoppingCart className="h-5 w-5" />
+            </Button>
+            {itemCount > 0 ? (
+              <Badge variant="destructive" className="absolute -right-0.5 -top-0.5 h-5 min-w-5 justify-center px-1">
+                {itemCount}
+              </Badge>
+            ) : null}
+          </Link>
+        ) : null}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

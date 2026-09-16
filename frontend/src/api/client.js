@@ -15,6 +15,14 @@ client.interceptors.request.use((config) => {
 client.interceptors.response.use(
   (response) => response,
   (error) => {
+    const data = error.response?.data;
+    if (data && typeof data === 'object' && data.message) {
+      error.message = data.message;
+    } else if (error.response?.status) {
+      const status = error.response.status;
+      const labels = { 400: 'Invalid request', 401: 'Please sign in again', 403: 'You do not have permission', 404: 'Not found', 500: 'Server error' };
+      error.message = labels[status] ?? `Request failed (${status})`;
+    }
     if (error.response?.status === 401) {
       localStorage.removeItem('agrolink_token');
       localStorage.removeItem('agrolink_user');

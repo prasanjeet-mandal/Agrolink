@@ -1,25 +1,46 @@
-import { mockDb, MOCK_MODE } from '@/mocks/db';
-import { httpGet } from '@/api/client';
+import { httpGet, httpPut } from '@/api/client';
 import { API } from '@/constants/apiEndpoints';
+import { toLogistics } from '@/services/normalize';
 
 export const logisticsService = {
+  async getMine() {
+    const res = await httpGet(API.LOGISTICS.MINE);
+    return (Array.isArray(res) ? res : []).map(toLogistics);
+  },
+
+  async assign(logisticsId, deliveryPartnerId) {
+    const res = await httpPut(`${API.LOGISTICS.BASE}/${logisticsId}/assign`, {
+      deliveryPartnerId,
+    });
+    return toLogistics(res);
+  },
+
+  async updateStatus(logisticsId, status) {
+    const res = await httpPut(`${API.LOGISTICS.BASE}/${logisticsId}/status`, { status });
+    return toLogistics(res);
+  },
+
+  async updateLocation(logisticsId, location) {
+    const res = await httpPut(`${API.LOGISTICS.BASE}/${logisticsId}/location`, {
+      latitude: Number(location.latitude),
+      longitude: Number(location.longitude),
+    });
+    return toLogistics(res);
+  },
+
   async getShipments() {
-    if (!MOCK_MODE) return httpGet(API.LOGISTICS.SHIPMENTS);
-    return mockDb.listShipments();
+    return httpGet(API.LOGISTICS.SHIPMENTS);
   },
 
   async getShipment(shipmentId) {
-    if (!MOCK_MODE) return httpGet(`${API.LOGISTICS.SHIPMENTS}/${shipmentId}`);
-    return mockDb.getShipment(shipmentId);
+    return httpGet(`${API.LOGISTICS.SHIPMENTS}/${shipmentId}`);
   },
 
   async getShipmentForOrder(orderId) {
-    if (!MOCK_MODE) return httpGet(`${API.LOGISTICS.SHIPMENTS}/order/${orderId}`);
-    return mockDb.shipmentForOrder(orderId);
+    return httpGet(`${API.LOGISTICS.SHIPMENTS}/order/${orderId}`);
   },
 
   async getVehicles() {
-    if (!MOCK_MODE) return httpGet(API.LOGISTICS.VEHICLES);
-    return mockDb.listVehicles();
+    return httpGet(API.LOGISTICS.VEHICLES);
   },
 };

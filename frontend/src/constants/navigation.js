@@ -89,6 +89,24 @@ export const NAVIGATION = {
       { label: 'AI Assistant', to: '/chatbot', icon: MessageSquare },
     ] },
   ],
+  [ROLES.DELIVERY_PARTNER]: [
+    { title: 'Deliveries', items: [
+      { label: 'Dashboard', to: '/delivery-partner', icon: LayoutDashboard, end: true },
+      { label: 'Assigned Deliveries', to: '/delivery-partner/deliveries', icon: ListOrdered },
+    ] },
+    { title: 'Account', items: [
+      { label: 'Profile', to: '/profile', icon: UserCircle2 },
+    ] },
+  ],
+  [ROLES.ADMIN]: [
+    { title: 'Manage', items: [
+      { label: 'Dashboard', to: '/admin', icon: LayoutDashboard, end: true },
+      { label: 'Orders', to: '/admin', icon: ListOrdered, end: true },
+    ] },
+    { title: 'Account', items: [
+      { label: 'Profile', to: '/profile', icon: UserCircle2 },
+    ] },
+  ],
 };
 
 export { sharedFooterNav, sharedConsumerNav };

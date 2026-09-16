@@ -1,3 +1,72 @@
+# ============================================================================
+# AgroLink — .gitignore
+# Protect secrets, local configs, logs, and build artifacts.
+# ============================================================================
+
+# --- Environment / secrets (NEVER commit real values!) ----------------------
+.env
+.env.*
+!.env.example
+application-local.properties
+application-secret.properties
+*.pem
+*.key
+*.pfx
+!.env.example
+.claude
+
+# --- Logs ---------------------------------------------------------------------
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+backend/backend-run*.log
+
+# --- Java / Spring Boot -------------------------------------------------------
+backend/target/
+!backend/src/main/resources/application.properties
+*.class
+
+# --- Python services -----------------------------------------------------------
+optimization-service/.venv/
+__pycache__/
+*.py[cod]
+.venv/
+
+# --- Node / Vite ---------------------------------------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.local
+
+# --- IDE / OS -------------------------------------------------------------------
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# --- Misc local files -------------------------------------------------------------
+backend/nohup.out
+nohup.out
+# --- AI/ML datasets and generated models --------------------------------------
+ai-service/agromarket-ml/data/
+ai-service/agromarket-ml/models/
+
+# Keep directory structure
+!ai-service/agromarket-ml/data/.gitkeep
+!ai-service/agromarket-ml/models/.gitkeep
+
+# --- Large AI/ML datasets -----------------------------------------------------
+ai-service/agromarket-ml/datasets/
+
+# --- Build output -------------------------------------------------------------
+backend/target/
+
+# --- Large Mandi datasets -----------------------------------------------------
+ai-service/agromarket-ml/mandi/
 # Python
 __pycache__/
 *.py[cod]

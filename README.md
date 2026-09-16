@@ -1,21 +1,30 @@
 # Agrolink — Farm-to-Market Platform
 
-Agrolink connects farmers, FPOs (farmer producer organisations), buyers and logistics partners in one marketplace. Farmers list produce with live pricing guidance, FPOs aggregate/gain or buy directly, consumers order fresh produce with a fair-price discovery, and orders move through delivery, payment escrow and settlement.
+Agrolink connects farmers, FPOs (farmer producer organisations), buyers and logistics partners in one marketplace. Farmers list produce with live pricing guidance, FPOs aggregate/gain or buy directly, consumers order fresh produce with fair-price discovery, and orders move through delivery, payment escrow and settlement.
 
 ## Repository layout
 
 | Path | Status | Purpose |
 | --- | --- | --- |
 | `frontend/` | **Implemented** | React 18 + Vite single-page app (all 14 feature modules, mock-first) |
-| `backend/` | Scaffold | Spring Boot API (auth, marketplace, orders, payments) |
-| `ai-service/` | Scaffold | Python service for price/demand forecasting and chatbot |
-| `optimization-service/` | Scaffold | Python service for logistics/route optimization |
+| `backend/` | **Implemented** | Spring Boot API (auth, marketplace, orders, payments, logistics, AI proxy) |
+| `ai-service/` | Removed temporarily | FastAPI service for crop, demand, yield prediction and chatbot responses (backend keeps rule-based fallbacks) |
+| `optimization-service/` | **Implemented** | FastAPI nearest-neighbor route optimizer with capacity validation |
+| `ai-service/agromarket-ml/` | Removed temporarily | Standalone AgroMarket ML project (price/arrival/demand/matching/route), datasets + trained models |
 | `docs/` | Empty | `api`, `architecture`, `requirements`, `research` |
-| `data/`, `scripts/`, `tests/` | Empty | Shared data / automation / integration tests |
+| `tests/` | Empty | `e2e`, `integration`, `performance` (planned) |
+| `data/`, `scripts/` | Empty | Shared data / automation |
 
 The frontend runs fully standalone today using an in-browser mock layer — no servers required.
 
-## Getting started (frontend)
+## Tech stack
+
+- **Frontend**: React 18, Vite 5, Tailwind CSS, Radix UI (shadcn-style components), Recharts, React Router v6, Axios
+- **Backend**: Spring Boot 4.1.1, Spring Security + JWT, Spring Data JPA, Springdoc OpenAPI, MySQL 8
+- **Optimization service**: FastAPI + Pydantic (haversine nearest-neighbor routing)
+- **Infra**: Docker Compose (MySQL, backend nginx, frontend nginx)
+
+## Getting started (frontend, mock-only)
 
 ```bash
 cd frontend
@@ -25,7 +34,110 @@ npm run dev        # http://localhost:5173
 
 Other scripts: `npm run build` (production bundle), `npm run preview`, `npm run lint` (`eslint src`).
 
-Vite proxies are pre-configured for when backends land: `/api` → `localhost:8080` (Spring Boot), `/ai` → `localhost:8000`, `/optimize` → `localhost:8001`. Every service in `src/services/` checks `MOCK_MODE` (`src/mocks/db.js`) and falls back to real HTTP automatically.
+## Run the backend
+
+Requires MySQL 8 running locally (or use Docker Compose, see below). Defaults: `jdbc:mysql://localhost:3306/agrolink`, user `root`, password configurable via env vars.
+
+```bash
+cd backend
+.\mvnw.cmd spring-boot:run    # Windows  |  ./mvnw spring-boot:run  # Linux/macOS
+# http://localhost:8080   (Swagger UI: http://localhost:8080/swagger-ui.html)
+```
+
+Requires JDK 21+. Tests: `.\mvnw.cmd test`.
+
+Key configuration (environment variables, see `backend/src/main/resources/application.properties`):
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `DB_URL` | `jdbc:mysql://localhost:3306/agrolink` | JDBC URL |
+| `DB_USER` / `DB_PASSWORD` | `root` / (local default) | Database credentials |
+| `JWT_SECRET` | dev secret | JWT signing key |
+| `JWT_EXPIRATION` | `86400000` | Token TTL (ms) |
+| `AI_URL` | `http://localhost:8000` | AI prediction service base URL |
+| `SERVER_PORT` | `8080` | Server port |
+| `PAYMENT_GATEWAY`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | empty | Payment gateway credentials |
+
+## Phone OTP verification (dev mock)
+
+Registration is gated by a phone OTP. The backend runs in mock mode: no SMS provider
+is wired up, so the fixed `OTP_DEV_CODE` (default `123456`) is accepted — and exposed
+in the send response while `OTP_EXPOSE_CODE=true` — keeping the frontend usable offline.
+
+| Variable | Purpose |
+| --- | --- |
+| `OTP_DEV_CODE` | Fixed code accepted in mock mode |
+| `OTP_EXPOSE_CODE` | Expose the code in the send response (dev only) |
+| `OTP_REQUIRE_VERIFY` | Reject `/api/auth/register` without a valid OTP-verified token |
+| `OTP_MAX_SENDS`, `OTP_RATE_WINDOW_MINUTES`, `OTP_RESEND_COOLDOWN` | Send rate limiting |
+| `OTP_MAX_ATTEMPTS` | Wrong-code attempts before the OTP is invalidated |
+| `OTP_TTL_SECONDS` | Lifetime of a verification session |
+
+Endpoints:
+
+- `POST /api/auth/otp/send` → `{ email, phone }` (phone in **E.164**, e.g. `+919876543210`)
+- `POST /api/auth/otp/verify` → `{ requestId, phone, code, email }` → returns a short-lived `registrationToken`
+- `POST /api/auth/register` → requires `otpToken` + `phone`; the token is bound to both the email and the phone
+
+Mock-based tests (`OtpServiceImplTest`) cover send/verify/expiry/attempt-limit/rate-limit paths.
+
+## Run the AI service
+
+> **Removed temporarily.** The `ai-service/` directory is not part of this checkout.
+> The Spring Boot backend still exposes `/api/ai/*` endpoints and returns rule-based
+> fallbacks (crop/demand/yield predictions and a marketplace-aware chatbot) when
+> the Python service at `AI_URL` is unavailable, so nothing breaks without it.
+
+When the service is restored, run it with:
+
+```bash
+cd ai-service
+python -m pip install -r requirements.txt
+python run.py                  # http://localhost:8000
+```
+
+Endpoints: `GET /health`, `POST /predict/crop`, `POST /predict/demand`, `POST /predict/yield`, `POST /chat`. The Spring Boot backend calls these via `AI_URL`.
+
+## Run the optimization service
+
+```bash
+cd optimization-service
+python -m pip install -r requirements.txt
+python run.py                  # http://localhost:8001
+```
+
+Endpoints: `GET /health`, `POST /optimize/route`. Route requests accept stops, optional `vehicleCapacity`, `averageSpeedKph` and `returnToStart`; demand over capacity returns `422`.
+
+## AgroMarket ML project
+
+> **Removed temporarily.** The standalone AgroMarket ML project lived under
+> `ai-service/agromarket-ml/` (price/arrival/demand/matching/route services and
+> trained models) and is not part of this checkout.
+
+When restored:
+
+```bash
+cd ai-service/agromarket-ml
+python -m pip install -r requirements.txt
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8002   # http://localhost:8002
+```
+
+Health: `GET /health`. Tests: `python -m pytest tests`.
+
+## Run everything with Docker Compose
+
+```bash
+cp .env.example .env   # then edit the secrets
+docker compose up --build
+```
+
+| Service | Port |
+| --- | --- |
+| MySQL 8.4 | `3306` |
+| Spring Boot backend | `8080` |
+| Nginx-served frontend | `80` |
+
+`VITE_API_BASE_URL` in `.env` sets the base URL baked into the frontend bundle at build time.
 
 ## Demo accounts
 
@@ -59,22 +171,53 @@ All pages are implemented in `frontend/src/pages/` and wired in `frontend/src/ro
 | 13 | Payment | Pay order (UPI/card/netbanking), payment confirmation, payment history (role-aware) |
 | 14 | Chatbot | Agro Assistant chat window (context-backed, suggestion chips, typing indicator) |
 
+## Backend API surface
+
+All routes under Spring Boot at `localhost:8080`:
+
+| Domain | Routes |
+| --- | --- |
+| Auth | `POST /api/auth/register`, `/login`, `/me`, `/otp/send`, `/otp/verify`, `/forgot-password`, `/reset-password` |
+| Users | `GET /api/users/me`, `/me/profile`, `/{id}/public` |
+| Marketplace | `GET/POST/PUT/DELETE /api/products`, `GET /api/products/search|mine`; `GET/POST/PUT/DELETE /api/categories`; reviews |
+| Cart | `GET /api/cart`, `POST /api/cart/items`, `PUT/DELETE /api/cart/items/{id}`, `DELETE /api/cart` |
+| Orders | `POST /api/orders/checkout`, `GET /api/orders|/seller|/{id}`, `POST /api/orders/{id}/status` |
+| Payment | `POST /api/payments/orders/{orderId}`, `/orders/{orderId}/confirm` |
+| Pricing/Demand | `GET /api/pricing/forecast/{productId}`, `POST /api/pricing/calculate`, `GET /api/pricing/trend`; `GET /api/demand/forecast[/{productId}]` |
+| Logistics | `POST /api/logistics/orders/{orderId}`, shipments/vehicles CRUD, `PUT /api/logistics/{id}/assign|status`, `POST /api/logistics/{id}/route` |
+| Delivery | `GET /api/delivery/status/{orderId}`, `POST /api/delivery/confirm` |
+| AI | `POST /api/ai/crop-prediction`, `/demand-prediction`, `/yield-prediction`, `/chat` |
+| Farmer/FPO | `GET/POST/PUT /api/farmer/profile`, `/api/fpo/profile`; farms under `/api/farmer/farms` |
+| Admin | `GET /api/admin/orders`, `/stats`; `PUT /api/admin/orders/{id}`, `/reviews/{id}` |
+| Misc | `GET /api/health`, addresses, notifications |
+
+Interactive docs at `/swagger-ui.html` and `/v3/api-docs`.
+
 ## Architecture
 
 ```
 frontend/src
-  api/        axios client + endpoint constants
-  components/ ui kit (shadcn-style) + common widgets + feature forms
-  context/    Auth, Cart, Chatbot providers
-  pages/      one folder per module (auth, marketplace, producer, orders,
-              pricing, demand, logistics, delivery, payment, chatbot, consumer)
-  services/   one service per domain, each: MOCK_MODE ? mockDb : axios
-  mocks/      data.js (seed data) + db.js (in-browser CRUD "database")
-  constants/  roles/allowed routes, statuses, navigation
-  utils/      formatting (price/date), validation
+  api/         axios client + endpoint constants
+  components/  ui kit (shadcn-style) + common widgets + feature forms
+  context/     Auth, Cart, Chatbot providers
+  pages/       one folder per module (auth, marketplace, producer, orders,
+               pricing, demand, logistics, delivery, payment, chatbot, consumer)
+  services/    one service per domain, each: MOCK_MODE ? mockDb : axios
+  mocks/       data.js (seed data) + db.js (in-browser CRUD "database")
+  constants/   roles/allowed routes, statuses, navigation
+  utils/       formatting (price/date), validation
+
+backend/src/main/java/com/agrolink
+  controller/  REST endpoints (one per domain)
+  service/     business logic
+  repository/  Spring Data JPA
+  entity/      JPA models       dto/        request/response objects
+  security/    JWT filter + config            config/    beans, CORS, security
+  ai/          AI-service client (crop/demand/yield/chat)
 ```
 
-- **Mock layer**: `mocks/data.js` seeds ready-to-use demo data (users, 20+ products, price/demand forecasts, shipments, payments). `mocks/db.js` implements `list/get/create/update*` used by every service, so the UI is fully interactive offline.
+- **Mock layer**: `mocks/data.js` seeds ready-to-use demo data (users, 20+ products, price/demand forecasts, shipments, payments). `mocks/db.js` implements `list/get/create/update*` used by every service, so the UI is fully interactive offline. Toggle `MOCK_MODE` (`frontend/src/mocks/db.js`) to call live services.
+- **Vite proxies** (dev only): `/api` → `localhost:8080` (Spring Boot), `/optimize` → `localhost:8001`.
 - **Design**: Tailwind CSS utility styling with a custom shadcn/ui-style component set. Dark-mode class toggle supported.
 - **Status model**: orders flow `PENDING → CONFIRMED → PROCESSING → READY_FOR_SHIPMENT → OUT_FOR_DELIVERY → IN_TRANSIT → DELIVERED` (or `CANCELLED`); payments `PENDING → COMPLETED → RELEASED`.
 
@@ -82,10 +225,20 @@ frontend/src
 
 ```bash
 cd frontend
-npm run lint   # clean (0 errors / warnings)
+npm run lint   # eslint — 0 errors / warnings
 npm run build  # vite production build passes
+
+cd ../backend
+./mvnw test    # Spring Boot context test (needs local MySQL)
 ```
 
-## What's next
+### Status (verified 2026-09-15)
 
-The backend (`backend/`, Spring Boot), AI forecasting/chatbot service (`ai-service/`) and route optimizer (`optimization-service/`) are planned next. The frontend services already call their live HTTP paths when `MOCK_MODE` is toggled off.
+| Component | Check | Result |
+| --- | --- | --- |
+| Frontend | `npm run lint` | PASS (0 errors / warnings) |
+| Frontend | `npm run build` | PASS (2640 modules; non-blocking chunk-size warning only) |
+| Backend | `./mvnw test` · `AgroLinkApplicationTests` | PASS (context loads against MySQL 8.0.46) |
+| Optimization | `/health`, `/optimize/route`, capacity-exceeded → 422 | 3/3 PASS |
+
+`tests/e2e`, `tests/integration`, `tests/performance` are reserved for future integration suites.

@@ -1,9 +1,21 @@
-import { Link } from 'react-router-dom';
-import { ArrowLeft, ShieldAlert } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, LogOut, ShieldAlert } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/components/ui/toast';
 
 export default function Unauthorized() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const switchAccount = () => {
+    logout();
+    toast({ title: 'Signed out', description: 'Sign in with the right account to continue.' });
+    navigate('/login', { replace: true });
+  };
+
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
       <div
@@ -25,11 +37,16 @@ export default function Unauthorized() {
               Your account role does not have permission to view this page.
             </p>
           </div>
-          <Button asChild className="mt-2 gap-2">
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4" /> Go to home
-            </Link>
-          </Button>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+            <Button onClick={switchAccount} variant="outline" className="gap-2">
+              <LogOut className="h-4 w-4" /> Sign in with a different account
+            </Button>
+            <Button asChild className="gap-2">
+              <Link to="/">
+                <ArrowLeft className="h-4 w-4" /> Go to home
+              </Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

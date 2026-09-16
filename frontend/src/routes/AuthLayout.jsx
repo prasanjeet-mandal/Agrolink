@@ -33,7 +33,7 @@ export default function AuthLayout() {
 
         <div className="relative flex h-full flex-col p-10 text-white">
           <div>
-            <img src="/assets/images/logo.png" alt="Agrolink" className="h-11 w-auto" />
+            <img src="/assets/images/logo.png" alt="Agrolink" className="h-11 w-auto brightness-0 invert" />
           </div>
 
           <div className="mt-auto space-y-7">
@@ -73,24 +73,43 @@ export default function AuthLayout() {
         </div>
       </aside>
 
-      <section className="relative flex flex-1 items-center justify-center overflow-hidden bg-gradient-to-br from-secondary via-background to-background p-6">
+      <section className="relative flex flex-1 items-center justify-center overflow-hidden p-6">
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-br from-secondary via-background to-background" />
         <div
           aria-hidden
-          className="agrolink-float pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-primary/15 blur-3xl"
+          className="agrolink-auth-grid absolute inset-0"
         />
         <div
           aria-hidden
-          className="agrolink-float-slow pointer-events-none absolute -bottom-24 right-0 h-80 w-80 rounded-full bg-accent/15 blur-3xl"
+          className="agrolink-float pointer-events-none absolute -left-24 top-10 h-80 w-80 rounded-full bg-primary/20 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="agrolink-float-slow pointer-events-none absolute -bottom-24 right-0 h-96 w-96 rounded-full bg-accent/20 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-16 top-1/3 h-64 w-64 rounded-full bg-emerald-500/15 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute bottom-10 left-8 h-40 w-40 rounded-full bg-amber-400/10 blur-2xl"
         />
 
         <div className="relative w-full max-w-md">
           <div className="mb-6 flex items-center justify-between">
             <Link to="/home" onClick={() => window.scrollTo(0, 0)} className="flex items-center lg:hidden">
-              <img src="/assets/images/logo.png" alt="Agrolink" className="h-10 w-auto" />
+              <img src="/assets/images/logo.png" alt="Agrolink" className="h-10 w-auto dark:invert" />
             </Link>
             <LanguageSwitcher className="ml-auto w-36" />
           </div>
-          <Outlet />
+          <div className="relative">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-8 rounded-[2.5rem] bg-gradient-to-br from-primary/20 via-transparent to-accent/20 blur-2xl"
+            />
+            <Outlet />
+          </div>
           <div className="mt-6 text-center">
             <Button asChild variant="glass" size="sm">
               <Link to="/" className="gap-1 text-muted-foreground">

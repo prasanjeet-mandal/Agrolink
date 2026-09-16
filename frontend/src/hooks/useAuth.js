@@ -1,6 +1,6 @@
 import { useAuthContext } from '@/context/AuthContext';
 
 export function useAuth() {
-  const { user, loading, login, register, logout, refreshProfile } = useAuthContext();
-  return { user, loading, login, register, logout, refreshProfile };
+  const { user, token, loading, login, googleLogin, googleSignupComplete, register, logout, refreshProfile } = useAuthContext();
+  return { user, token, loading, login, googleLogin, googleSignupComplete, register, logout, refreshProfile };
 }

@@ -10,8 +10,10 @@ const gradientByCategory = {
   Dairy: 'from-sky-200/70 to-blue-100',
 };
 
+const isImageUrl = (v) => typeof v === 'string' && (v.startsWith('/') || v.startsWith('http'));
+
 export default function ProductImage({ productId, icon, category, name, className, textClassName }) {
-  const src = productImageOf(productId);
+  const src = isImageUrl(icon) ? icon : productImageOf(productId);
   if (src) {
     return <img src={src} alt={name ?? productId} loading="lazy" className={cn('object-cover', className)} />;
   }

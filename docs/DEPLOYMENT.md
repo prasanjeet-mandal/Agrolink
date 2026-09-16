@@ -13,7 +13,6 @@
 3. Services:
    - Frontend (React/nginx): `http://localhost`
    - Backend (Spring Boot): `http://localhost:8080`
-   - AI service (FastAPI): `http://localhost:8000`
    - MySQL: `localhost:3306`
 
 Stop/clean:
@@ -28,7 +27,7 @@ Workflow: `.github/workflows/deploy.yml`
 
 | Stage  | Action |
 |--------|--------|
-| test   | Builds & tests frontend (npm), backend (Maven), AI service (pip) |
+| test   | Builds & tests frontend (npm), backend (Maven), optimization service (pip) |
 | docker | Builds & pushes images to GHCR (`ghcr.io/<repo>/agrolink-*`) on push to `main` |
 | deploy | SSHes into the server, pulls images, `docker compose up -d` |
 
@@ -57,7 +56,7 @@ git clone <repo-url> .
 cp .env.example .env && nano .env   # set production values
 
 # set compose to pull ghcr images:
-#   backend/frontend/ai-service: use
+#   backend/frontend/optimization-service: use
 #   image: ghcr.io/<owner>/agrolink-<svc> instead of build
 ```
 

@@ -17,6 +17,7 @@ const dict = {
   'nav.coverage': { en: 'Coverage', hi: 'कवरेज', pa: 'ਕਵਰੇਜ', mr: 'कव्हरेज', ta: 'கவரேஜ்' },
   'nav.faq': { en: 'FAQ', hi: 'सवाल-जवाब', pa: 'ਸਵਾਲ-ਜਵਾਬ', mr: 'प्रश्नोत्तर', ta: 'கேள்வி பதில்' },
   'nav.login': { en: 'Login', hi: 'लॉगिन', pa: 'ਲੌਗਇਨ', mr: 'लॉगिन', ta: 'உள்நுழைக' },
+  'nav.adminLogin': { en: 'Admin Login', hi: 'एडमिन लॉगिन', pa: 'ਐਡਮਿਨ ਲੌਗਇਨ', mr: 'अॅडमिन लॉगिन', ta: 'நிர்வாக உள்நுழைவு' },
   'nav.buySell': { en: 'Buy & Sell', hi: 'खरीदें और बेचें', pa: 'ਖਰੀਦੋ ਅਤੇ ਵੇਚੋ', mr: 'खरेदी-विक्री', ta: 'வாங்கவும் விற்கவும்' },
 
   // ----- Hero -----
@@ -49,6 +50,8 @@ const dict = {
   },
   'hero.buyer': { en: 'I\'m a Buyer', hi: 'मैं खरीदार हूँ', pa: 'ਮੈਂ ਖਰੀਦਦਾਰ ਹਾਂ', mr: 'मी खरेदीदार आहे', ta: 'நான் வாங்குபவர்' },
   'hero.buyerMore': { en: 'Find quality sellers', hi: 'गुणवत्ता वाले विक्रेता खोजें', pa: 'ਚੰਗੇ ਵਿਕਰੇਤਾ ਲੱਭੋ', mr: 'गुणवत्तेचे विक्रेते शोधा', ta: 'தரமான விற்பவர்களைக் கண்டறியுங்கள்' },
+  'hero.driver': { en: 'Delivery Partner', hi: 'डिलीवरी पार्टनर', pa: 'ਡਿਲੀਵਰੀ ਪਾਰਟਨਰ', mr: 'डिलिव्हरी भागीदार', ta: 'டெலிவரி பார்ட்னர்' },
+  'hero.driverMore': { en: 'Deliver & earn daily', hi: 'डिलीवरी करें और रोज़ कमाएँ', pa: 'ਡਿਲੀਵਰੀ ਕਰੋ ਅਤੇ ਰੋਜ਼ ਕਮਾਓ', mr: 'डिलिव्हरी करा आणि रोज कमवा', ta: 'டெலிவரி செய்து தினமும் சம்பாரியுங்கள்' },
   'hero.buyerDesc': {
     en: 'Source fresh produce directly from farmers and FPOs with transparent, mandi-backed pricing.',
     hi: 'किसानों और FPO से सीधे ताज़ा उपज खरीदें, जिसकी कीमत मंडी भाव पर आधारित और पारदर्शी हो।',

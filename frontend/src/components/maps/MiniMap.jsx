@@ -15,33 +15,40 @@ const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">Op
 
 export default function MiniMap({ points = [], polyline = true, className, height = 280 }) {
   const containerRef = React.useRef(null);
-  const signature = JSON.stringify(points);
+  const validPoints = React.useMemo(
+    () =>
+      (points ?? [])
+        .filter((p) => p && p.lat != null && p.lng != null && !Number.isNaN(Number(p.lat)) && !Number.isNaN(Number(p.lng)))
+        .map((p) => ({ ...p, lat: Number(p.lat), lng: Number(p.lng) })),
+    [points]
+  );
+  const signature = JSON.stringify(validPoints);
 
   React.useEffect(() => {
     const el = containerRef.current;
-    if (!el || points.length === 0) return undefined;
+    if (!el || validPoints.length === 0) return undefined;
 
     const map = L.map(el, { scrollWheelZoom: false, attributionControl: true });
     L.tileLayer(TILE_URL, { maxZoom: 19, attribution: ATTRIBUTION }).addTo(map);
 
     let bounds;
-    if (points.length === 1) {
-      map.setView([points[0].lat, points[0].lng], 14);
+    if (validPoints.length === 1) {
+      map.setView([validPoints[0].lat, validPoints[0].lng], 14);
     } else {
-      const lats = points.map((p) => p.lat);
-      const lngs = points.map((p) => p.lng);
+      const lats = validPoints.map((p) => p.lat);
+      const lngs = validPoints.map((p) => p.lng);
       bounds = L.latLngBounds([[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]]);
       map.fitBounds(bounds, { padding: [42, 42] });
     }
 
-    if (polyline && points.length > 1) {
+    if (polyline && validPoints.length > 1) {
       L.polyline(
-        points.map((p) => [p.lat, p.lng]),
+        validPoints.map((p) => [p.lat, p.lng]),
         { color: '#2563eb', weight: 3, opacity: 0.85, dashArray: '6 8' }
       ).addTo(map);
     }
 
-    points.forEach((p) => {
+    validPoints.forEach((p) => {
       const style = KIND_STYLES[p.kind] ?? KIND_STYLES.waypoint;
       const marker = L.circleMarker([p.lat, p.lng], {
         radius: p.kind === 'current' ? 9 : 7,
@@ -68,19 +75,19 @@ export default function MiniMap({ points = [], polyline = true, className, heigh
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature, polyline]);
 
-  const kindsInUse = [...new Set(points.map((p) => p.kind))];
+  const kindsInUse = [...new Set(validPoints.map((p) => p.kind))];
 
   return (
     <Card className={cn('relative w-full overflow-hidden', className)} style={{ height }}>
-      {points.length > 0 ? (
+      {validPoints.length > 0 ? (
         <div ref={containerRef} className="h-full w-full" />
       ) : (
-        <div className="flex h-full items-center justify-center bg-secondary/40 text-sm text-muted-foreground">
-          No route yet for this shipment.
+        <div className="flex h-full items-center justify-center bg-secondary/40 px-4 text-center text-sm text-muted-foreground">
+          Coordinates are unavailable for this shipment.
         </div>
       )}
 
-      {points.length > 0 ? (
+      {validPoints.length > 0 ? (
         <div className="pointer-events-none absolute left-3 top-3 z-[400] flex flex-wrap gap-2">
           {kindsInUse.map((k) => (
             <span

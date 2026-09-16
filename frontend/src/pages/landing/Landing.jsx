@@ -309,7 +309,7 @@ function MandiCard({ product }) {
       to={`/marketplace/${product.id}`}
       className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card transition-all hover:-translate-y-1 hover:shadow-lg"
     >
-      <span className={`absolute inset-x-0 top-0 z-10 h-1 ${stripeCls(product.id.charCodeAt(0))}`} />
+      <span className={`absolute inset-x-0 top-0 z-10 h-1 ${stripeCls(String(product.id ?? '').charCodeAt(0))}`} />
       <div className="relative overflow-hidden">
         {img ? (
           <img
@@ -736,8 +736,7 @@ export default function Landing() {
             <LanguageSwitcher />
             <ThemeToggle />
             <div className="hidden items-center gap-2 sm:flex">
-              <Button asChild variant="ghost" size="sm"><Link to="/login">{t('nav.login')}</Link></Button>
-              <Button asChild size="sm" className="gap-1.5"><Link to="/register"><Sprout className="h-4 w-4" /> {t('nav.buySell')}</Link></Button>
+              <Button asChild variant="ghost" size="sm"><Link to="/login?role=ADMIN">{t('nav.adminLogin')}</Link></Button>
             </div>
             <Button variant="ghost" size="icon" className="xl:hidden" onClick={() => setMenuOpen((o) => !o)} aria-label="Open menu">
             {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -751,8 +750,7 @@ export default function Landing() {
                 <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)} className="text-sm font-medium text-muted-foreground">{t(l.labelKey)}</a>
               ))}
               <div className="flex gap-2 pt-2">
-                <Button asChild variant="outline" size="sm" className="flex-1"><Link to="/login">{t('nav.login')}</Link></Button>
-                <Button asChild size="sm" className="flex-1"><Link to="/register">{t('nav.buySell')}</Link></Button>
+                <Button asChild variant="outline" size="sm" className="flex-1"><Link to="/login?role=ADMIN">{t('nav.adminLogin')}</Link></Button>
               </div>
             </div>
           </div>
@@ -797,10 +795,10 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="agrolink-fade-up mt-12 grid max-w-xl gap-4 [animation-delay:360ms] sm:grid-cols-2">
+          <div className="agrolink-fade-up mt-12 grid max-w-2xl gap-4 [animation-delay:360ms] sm:grid-cols-3">
             <Tilt>
-              <Button asChild variant="success" size="lg" className="agrolink-neon-emerald w-fit h-auto flex-col items-start gap-1 rounded-xl px-5 py-3.5">
-                <Link to="/register" className="group text-left whitespace-normal">
+              <Button asChild variant="success" size="lg" className="agrolink-neon-emerald w-full h-auto flex-col items-start gap-1 rounded-xl px-5 py-3.5">
+                <Link to="/select-role?group=seller" className="group text-left whitespace-normal">
                   <span className="text-lg font-extrabold tracking-tight text-white">{t('hero.seller')}</span>
                   <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-100/90">
                     {t('hero.sellerMore')} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
@@ -809,11 +807,23 @@ export default function Landing() {
               </Button>
             </Tilt>
             <Tilt>
-              <Button asChild size="lg" className="agrolink-neon-primary w-fit h-auto flex-col items-start gap-1 rounded-xl px-5 py-3.5">
-                <Link to="/marketplace" className="group text-left whitespace-normal">
+              <Button asChild size="lg" className="agrolink-neon-primary w-full h-auto flex-col items-start gap-1 rounded-xl px-5 py-3.5">
+                <Link to="/select-role?group=buyer" className="group text-left whitespace-normal">
                   <span className="text-lg font-extrabold tracking-tight text-white">{t('hero.buyer')}</span>
                   <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary-foreground/90">
                     {t('hero.buyerMore')} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+              </Button>
+            </Tilt>
+            <Tilt>
+              <Button asChild size="lg" className="w-full h-auto flex-col items-start gap-1 rounded-xl px-5 py-3.5 bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 shadow-lg shadow-orange-700/30">
+                <Link to="/select-role?group=driver" className="group text-left whitespace-normal">
+                  <span className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-white">
+                    <Truck className="h-5 w-5 shrink-0" /> {t('hero.driver')}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-orange-100/90">
+                    {t('hero.driverMore')} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                   </span>
                 </Link>
               </Button>
@@ -1199,7 +1209,7 @@ export default function Landing() {
               <li><span className="cursor-default">{t('foot.samachar')}</span></li>
               <li><span className="cursor-default">{t('foot.partner')}</span></li>
               <li><span className="cursor-default">{t('foot.help')}</span></li>
-              <li><Link to="/login" className="transition-colors hover:text-foreground">{t('foot.signin')} <code className="rounded bg-muted px-1 py-0.5">secret</code></Link></li>
+              <li><Link to="/login" className="transition-colors hover:text-foreground">{t('foot.signin')}</Link></li>
             </ul>
           </div>
         </div>

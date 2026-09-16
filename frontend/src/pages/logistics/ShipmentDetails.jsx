@@ -8,20 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import MiniMap from '@/components/maps/MiniMap';
+import { routePoints } from '@/utils/routePoints';
 import { formatPrice } from '@/utils/formatPrice';
 import { formatDateTime } from '@/utils/formatDate';
-
-function mapPoints(shipment) {
-  const route = shipment.route ?? [];
-  const points = route.map((p, i) => {
-    let kind = 'waypoint';
-    if (i === 0) kind = 'origin';
-    if (i === route.length - 1) kind = 'destination';
-    return { ...p, kind };
-  });
-  if (shipment.currentLocation) points.push({ ...shipment.currentLocation, kind: 'current', name: shipment.currentLocation.note });
-  return points;
-}
 
 export default function ShipmentDetails() {
   const { shipmentId } = useParams();
@@ -61,7 +50,7 @@ export default function ShipmentDetails() {
         <OrderStatusBadge status={shipment.status} />
       </div>
 
-      <MiniMap points={mapPoints(shipment)} height={300} />
+      <MiniMap points={routePoints(shipment)} height={300} />
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
@@ -126,7 +115,7 @@ export default function ShipmentDetails() {
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><MapPinned className="h-4 w-4 text-primary" /> Live location</CardTitle></CardHeader>
           <CardContent className="text-sm">
-            <p className="text-muted-foreground">{shipment.currentLocation.note}</p>
+            <p className="text-muted-foreground">{shipment.currentLocation.name}</p>
             <Button asChild variant="outline" size="sm" className="mt-3 gap-1">
               <Link to={`/logistics/routes/${shipment.id}`}><MapPinned className="h-3.5 w-3.5" /> Open route planner</Link>
             </Button>
