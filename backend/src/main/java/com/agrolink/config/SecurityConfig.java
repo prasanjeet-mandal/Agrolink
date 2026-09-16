@@ -97,6 +97,7 @@ public class SecurityConfig {
                         "/api/auth/otp/**",
                         "/api/auth/forgot-password",
                         "/api/auth/reset-password",
+                        "/api/ai/chat",
                         "/api/health/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
