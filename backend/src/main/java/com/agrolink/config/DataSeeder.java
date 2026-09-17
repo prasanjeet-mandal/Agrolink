@@ -5,14 +5,17 @@ import com.agrolink.entity.Category;
 import com.agrolink.entity.DeliveryPartnerProfile;
 import com.agrolink.entity.Farmer;
 import com.agrolink.entity.Fpo;
+import com.agrolink.entity.Product;
 import com.agrolink.entity.User;
 import com.agrolink.entity.Vehicle;
+import com.agrolink.enums.ProductStatus;
 import com.agrolink.enums.Role;
 import com.agrolink.repository.AddressRepository;
 import com.agrolink.repository.CategoryRepository;
 import com.agrolink.repository.DeliveryPartnerProfileRepository;
 import com.agrolink.repository.FarmerRepository;
 import com.agrolink.repository.FpoRepository;
+import com.agrolink.repository.ProductRepository;
 import com.agrolink.repository.UserRepository;
 import com.agrolink.repository.VehicleRepository;
 
@@ -20,6 +23,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -32,6 +36,7 @@ public class DataSeeder implements CommandLineRunner {
     private final FarmerRepository farmers;
     private final FpoRepository fpos;
     private final VehicleRepository vehicles;
+    private final ProductRepository products;
     private final DeliveryPartnerProfileRepository deliveryPartnerProfiles;
     private final PasswordEncoder passwordEncoder;
 
@@ -42,6 +47,7 @@ public class DataSeeder implements CommandLineRunner {
             FarmerRepository farmers,
             FpoRepository fpos,
             VehicleRepository vehicles,
+            ProductRepository products,
             DeliveryPartnerProfileRepository deliveryPartnerProfiles,
             PasswordEncoder passwordEncoder
     ) {
@@ -51,6 +57,7 @@ public class DataSeeder implements CommandLineRunner {
         this.farmers = farmers;
         this.fpos = fpos;
         this.vehicles = vehicles;
+        this.products = products;
         this.deliveryPartnerProfiles = deliveryPartnerProfiles;
         this.passwordEncoder = passwordEncoder;
     }
@@ -76,6 +83,8 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         seedProducerProfiles();
+
+        seedProducts();
 
         seedVehicles();
 
@@ -160,6 +169,60 @@ public class DataSeeder implements CommandLineRunner {
                     "Pune", "Pune", "Maharashtra", "411001",
                     "Cooperative of grape, tomato and dairy farmers from the Sahyadri belt.");
         }
+    }
+
+    private void seedProducts() {
+
+        if (products.count() > 0) {
+            return;
+        }
+
+        User harpreet = users.findByEmail("harpreet@example.com").orElse(null);
+        User ramesh = users.findByEmail("ramesh@example.com").orElse(null);
+        User lakshmi = users.findByEmail("lakshmi@example.com").orElse(null);
+        User fpoPunjab = users.findByEmail("fpo.punjab@example.com").orElse(null);
+        User fpoSahyadri = users.findByEmail("fpo.sahyadri@example.com").orElse(null);
+
+        Category grains = categories.findByNameIgnoreCase("Grains & Pulses").orElse(null);
+        Category oilseeds = categories.findByNameIgnoreCase("Oilseeds").orElse(null);
+        Category vegetables = categories.findByNameIgnoreCase("Vegetables").orElse(null);
+        Category fruits = categories.findByNameIgnoreCase("Fruits").orElse(null);
+        Category spices = categories.findByNameIgnoreCase("Spices").orElse(null);
+        Category dairy = categories.findByNameIgnoreCase("Dairy").orElse(null);
+
+        Object[][] rows = {
+            // id  name                            seller       category   price    unit     qty   location
+            { 1,  "Basmati Rice (Premium)",        fpoPunjab,   grains,    145.00,  "kg",    1200.0, "Ludhiana, Punjab" },
+            { 2,  "Mustard Oil (Kachi Ghani)",     fpoPunjab,   oilseeds,  210.00,  "litre",  400.0, "Ludhiana, Punjab" },
+            { 3,  "Sharbati Wheat",                fpoPunjab,   grains,    3200.00, "quintal", 320.0, "Ludhiana, Punjab" },
+            { 4,  "Fresh Potatoes",                ramesh,      vegetables,  28.00, "kg",    8000.0, "Kanpur, Uttar Pradesh" },
+            { 5,  "Organic Wheat Flour (Atta)",    harpreet,    grains,      62.00, "kg",    1500.0, "Ludhiana, Punjab" },
+            { 6,  "Tomatoes (Ripe Gassed-free)",   fpoSahyadri, vegetables,  34.00, "kg",    5000.0, "Pune, Maharashtra" },
+            { 7,  "Thompson Seedless Grapes",      fpoSahyadri, fruits,      90.00, "kg",    1200.0, "Pune, Maharashtra" },
+            { 8,  "Onions (Red)",                  fpoSahyadri, vegetables,  22.00, "kg",    9000.0, "Pune, Maharashtra" },
+            { 9,  "Organic Turmeric Powder",       lakshmi,     spices,     380.00, "kg",     160.0, "Bengaluru Rural, Karnataka" },
+            { 10, "Ragi (Finger Millet)",          lakshmi,     grains,      48.00, "kg",     600.0, "Bengaluru Rural, Karnataka" },
+            { 11, "Fresh Tomatoes (Cherry)",       lakshmi,     vegetables,  58.00, "kg",     350.0, "Bengaluru Rural, Karnataka" },
+            { 12, "Yellow Mustard Seeds",          harpreet,    oilseeds,    84.00, "kg",     900.0, "Ludhiana, Punjab" },
+            { 13, "Fresh Cow Milk (Bulk)",         fpoSahyadri, dairy,       46.00, "litre",  500.0, "Pune, Maharashtra" },
+            { 14, "Groundnut Kernels",             harpreet,    oilseeds,   118.00, "kg",     700.0, "Ludhiana, Punjab" },
+            { 15, "Turmeric Finger (Raw)",         lakshmi,     spices,      92.00, "kg",     800.0, "Bengaluru Rural, Karnataka" },
+        };
+
+        for (Object[] row : rows) {
+            Product p = new Product();
+            p.setSeller((User) row[2]);
+            p.setCategory((Category) row[3]);
+            p.setName((String) row[1]);
+            p.setPrice(BigDecimal.valueOf((Double) row[4]));
+            p.setUnit((String) row[5]);
+            p.setAvailableQuantity((Double) row[6]);
+            p.setLocation((String) row[7]);
+            p.setStatus(ProductStatus.ACTIVE);
+            products.save(p);
+        }
+
+        System.out.println("[AGROLINK-SEED] 15 demo products created for the home page");
     }
 
     private void saveFarmer(User user, String phone, String village, String district, String state, String pincode, String experience) {

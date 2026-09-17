@@ -248,7 +248,7 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
 
         try {
             role = Role.valueOf(raw.trim().toUpperCase());
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignored) {
             return null;
         }
 

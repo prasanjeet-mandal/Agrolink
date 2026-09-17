@@ -145,6 +145,7 @@ public class MlClient {
             if (v.isNumber()) {
                 return Optional.of(v.asDouble());
             }
+            return Optional.empty();
         } catch (Exception e) {
             log.warn("ML {} failed: {}", path, e.toString());
             return Optional.empty();

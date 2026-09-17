@@ -11,7 +11,7 @@ import { LANGUAGES } from '@/i18n/dict';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import ThemeToggle from '@/components/common/ThemeToggle';
 import { productService } from '@/services/productService';
-import { productImageOf } from '@/constants/productImages';
+import { useProductImage } from '@/hooks/useProductImage';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/utils/formatPrice';
 
@@ -303,7 +303,7 @@ function SectionHeading({ kicker, title, actionHref, actionLabel }) {
 
 function MandiCard({ product }) {
   const { t } = useLanguage();
-  const img = productImageOf(product.id);
+  const img = useProductImage(product);
   return (
     <Link
       to={`/marketplace/${product.id}`}
@@ -319,8 +319,7 @@ function MandiCard({ product }) {
             className="aspect-[3/1] w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex aspect-[3/1] w-full items-center justify-center bg-gradient-to-br from-emerald-100 to-lime-50 text-2xl">
-            {product.icon ?? '🌱'}
+          <div className="flex aspect-[3/1] w-full items-center justify-center bg-gradient-to-br from-emerald-100 to-lime-50">
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
@@ -348,7 +347,7 @@ function MandiCard({ product }) {
 function LeadCard({ product }) {
   const { t } = useLanguage();
   const badge = roleBadge(product);
-  const img = productImageOf(product.id);
+  const img = useProductImage(product);
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl border bg-card transition-all hover:-translate-y-1 hover:shadow-lg">
       <div className="relative overflow-hidden">
@@ -360,8 +359,7 @@ function LeadCard({ product }) {
             className="aspect-[3/1] w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex aspect-[3/1] w-full items-center justify-center bg-gradient-to-br from-emerald-100 to-lime-50 text-3xl">
-            {product.icon ?? '🌱'}
+          <div className="flex aspect-[3/1] w-full items-center justify-center bg-gradient-to-br from-emerald-100 to-lime-50">
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
@@ -414,6 +412,27 @@ function LeadsSection({ name, products }) {
   );
 }
 
+function TickerItem({ row, i }) {
+  const src = useProductImage(row);
+  return (
+    <div className={`mr-4 flex min-w-max items-center gap-3 rounded-xl border border-l-4 bg-background px-4 py-2.5 ${['border-emerald-500', 'border-amber-500', 'border-lime-500', 'border-orange-500', 'border-sky-500', 'border-green-600'][i % 6]}`}>
+      {src ? (
+        <img src={src} alt={row.name} loading="lazy" className="h-9 w-9 shrink-0 rounded-lg object-cover" />
+      ) : (
+        <span className="h-9 w-9 shrink-0 rounded-lg bg-muted" />
+      )}
+      <div>
+        <p className="text-sm font-semibold">{row.name}</p>
+        <p className="text-xs text-muted-foreground">{row.market}</p>
+      </div>
+      <div className="text-right">
+        <p className="text-sm font-bold text-primary">{formatPrice(row.price)}</p>
+        <p className="text-[11px] text-emerald-600">per {row.unit}</p>
+      </div>
+    </div>
+  );
+}
+
 function MarqueeTicker({ rows }) {
   const items = [...rows, ...rows, ...rows, ...rows];
   return (
@@ -421,26 +440,7 @@ function MarqueeTicker({ rows }) {
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-background to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-background to-transparent" />
       <div className="agrolink-marquee flex w-max">
-        {items.map((r, i) => {
-          const src = productImageOf(r.id);
-          return (
-            <div key={i} className={`mr-4 flex min-w-max items-center gap-3 rounded-xl border border-l-4 bg-background px-4 py-2.5 ${['border-emerald-500', 'border-amber-500', 'border-lime-500', 'border-orange-500', 'border-sky-500', 'border-green-600'][i % 6]}`}>
-              {src ? (
-                <img src={src} alt={r.name} loading="lazy" className="h-9 w-9 shrink-0 rounded-lg object-cover" />
-              ) : (
-                <span className="text-xl">{r.icon}</span>
-              )}
-              <div>
-                <p className="text-sm font-semibold">{r.name}</p>
-                <p className="text-xs text-muted-foreground">{r.market}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-primary">{formatPrice(r.price)}</p>
-                <p className="text-[11px] text-emerald-600">per {r.unit}</p>
-              </div>
-            </div>
-          );
-        })}
+        {items.map((r, i) => <TickerItem key={i} row={r} i={i} />)}
       </div>
     </div>
   );
@@ -709,8 +709,8 @@ export default function Landing() {
 
   const mandiRows = products.slice(0, 6).map((p) => ({
     id: p.id,
-    icon: p.icon,
     name: p.name,
+    category: p.category,
     price: p.pricePerUnit,
     unit: p.unit,
     market: marketLabel(p),

@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
+
 import java.util.List;
 import java.util.Random;
 
@@ -59,7 +59,7 @@ public class PricingServiceImpl implements PricingService {
                     p.getId(), p.getName(), p.getUnit(),
                     BigDecimal.valueOf(basePerKg).setScale(2, RoundingMode.HALF_UP),
                     history, forecast, 0.86);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException ignored) {
             // ai-service offline -> deterministic fallback anchored on the listing price.
             return fallback(p, basePerKg, now);
         }

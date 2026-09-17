@@ -14,11 +14,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.HexFormat;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -72,8 +70,10 @@ public class ImageService {
             source = "wikimedia";
         }
 
+        // No relevant image found -> intentionally return null.
+        // Never fall back to a random placeholder photo.
         if (url == null) {
-            url = deterministicPlaceholder(query);
+            return new CachedResult(null, "none", false);
         }
 
         CachedResult result = new CachedResult(url, source, false);
@@ -116,9 +116,8 @@ public class ImageService {
 
         JsonNode pages = root.path("query").path("pages");
         for (JsonNode page : pages) {
-            String title = page.path("title").asText("").toLowerCase();
-            if (title.contains(".pdf") || title.contains(".doc") || title.contains(".svg")
-                    || title.contains(".tif")) {
+            String title = page.path("title").asText("");
+            if (!isRelevantImage(title)) {
                 continue;
             }
             JsonNode imageInfo = page.path("imageinfo");
@@ -131,6 +130,36 @@ public class ImageService {
             }
         }
         return null;
+    }
+
+    private static final Set<String> EXCLUDED_WORDS = Set.of(
+            "leaf", "leaves", "fallen", "flower", "bloom", "stem", "trunk",
+            "person", "people", "woman", "man", "child", "children", "girl",
+            "boy", "hand", "eating", "eaten", "relish", "pick", "picker",
+            "dish", "curry", "cooked", "soup", "juice", "drink",
+            "field", "market", "seller", "shop", "pest", "disease"
+    );
+
+    // Keeps only vegetable/fruit/grain photos and rejects non-produce shots
+    // (leaves, flowers, people eating, cooked dishes, farms/markets, etc.).
+    private boolean isRelevantImage(String rawTitle) {
+
+        if (rawTitle == null || rawTitle.isBlank()) {
+            return false;
+        }
+
+        String title = rawTitle.toLowerCase();
+        if (title.contains(".pdf") || title.contains(".doc") || title.contains(".svg")
+                || title.contains(".tif") || title.contains(".gif")) {
+            return false;
+        }
+
+        for (String token : title.split("[^a-z0-9]+")) {
+            if (EXCLUDED_WORDS.contains(token)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private String firstImageLink(JsonNode root, String itemsField) {
@@ -185,24 +214,6 @@ public class ImageService {
             return objectMapper.readTree(response.body());
         } catch (IOException ex) {
             return null;
-        }
-    }
-
-    private String deterministicPlaceholder(String query) {
-
-        return "https://picsum.photos/seed/"
-                + sha1(query)
-                + "/480/360";
-    }
-
-    private String sha1(String value) {
-
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            byte[] hash = digest.digest(value.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash, 0, 8);
-        } catch (NoSuchAlgorithmException ex) {
-            return "agrolink";
         }
     }
 

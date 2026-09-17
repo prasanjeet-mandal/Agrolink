@@ -44,7 +44,7 @@ public class AiServiceImpl implements AiService {
     public CropPredictionResponse crop(CropPredictionRequest r) {
         try {
             return RestClient.create(url).post().uri("/predict/crop").body(r).retrieve().body(CropPredictionResponse.class);
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             String s = r.soilType().toLowerCase(), season = r.season().toLowerCase();
             String c = s.contains("alluvial") && season.contains("winter") ? "Wheat"
                     : season.contains("monsoon") ? "Rice"
@@ -78,7 +78,7 @@ public class AiServiceImpl implements AiService {
     public YieldPredictionResponse yield(YieldPredictionRequest r) {
         try {
             return RestClient.create(url).post().uri("/predict/yield").body(r).retrieve().body(YieldPredictionResponse.class);
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             double b = switch (r.crop().toLowerCase()) {
                 case "wheat" -> 18;
                 case "rice" -> 22;
@@ -144,13 +144,12 @@ public class AiServiceImpl implements AiService {
             .append(p.getUnit()).append('~')
             .append(p.getAvailableQuantity()).append(';'));
         return context.toString();
-        }
+    }
 
     private Optional<String> tryProductMatch(String q) {
         List<Product> all = products.findAll();
         for (Product p : all) {
             String name = p.getName() == null ? "" : p.getName().toLowerCase(Locale.ROOT);
-            String[] tokens = name.split("[^a-z0-9 ]");
             boolean hit = false;
             for (String tok : name.split("\\s+")) {
                 if (tok.length() > 3 && q.contains(tok)) {
@@ -187,7 +186,11 @@ public class AiServiceImpl implements AiService {
 
     private String tryMarket(String q) {
         List<Product> all = products.findAll();
-        double avg = all.stream().mapToDouble(p -> p.getPrice().doubleValue()).average().orElse(0);
+        double avg = all.stream()
+                .filter(p -> p.getPrice() != null)
+                .mapToDouble(p -> p.getPrice().doubleValue())
+                .average()
+                .orElse(0);
         Optional<Product> top = all.stream()
                 .filter(p -> p.getAvailableQuantity() != null)
                 .max(Comparator.comparing(Product::getAvailableQuantity));
