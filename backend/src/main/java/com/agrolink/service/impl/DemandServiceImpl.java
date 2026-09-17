@@ -84,7 +84,7 @@ public class DemandServiceImpl implements DemandService {
             return new DemandForecastResponse(
                     "d" + p.getId(), p.getId(), p.getName(), districtOf(p.getLocation()), level,
                     history, forecast, 0.82);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException ignored) {
             return fallback(p, level, base, now);
         }
     }

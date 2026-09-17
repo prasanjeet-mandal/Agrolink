@@ -9,6 +9,21 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (/[\\/](recharts|d3-[^\\/]+|react-is|react-smooth|recharts-scale)[\\/]/.test(id)) return 'charts';
+          if (id.includes('node_modules/leaflet')) return 'maps';
+          if (id.includes('node_modules/axios')) return 'http';
+          if (id.includes('node_modules/react-router')) return 'router';
+          if (id.includes('node_modules/react') || id.includes('node_modules/scheduler')) return 'react-vendor';
+          return 'vendor';
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     allowedHosts: [

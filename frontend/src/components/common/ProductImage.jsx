@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/utils/cn';
 import { productImageOf } from '@/constants/productImages';
 import { commodityImageOf } from '@/constants/commodityImages';
+import { isEdibleProduct } from '@/constants/edibleCategories';
 import { resolveProductImage } from '@/services/productImageService';
 
 const gradientByCategory = {
@@ -16,12 +17,13 @@ const gradientByCategory = {
 const isImageUrl = (v) => typeof v === 'string' && (v.startsWith('/') || v.startsWith('http'));
 
 export default function ProductImage({ productId, icon, category, name, variety, className }) {
-  const localSrc = isImageUrl(icon) ? icon : productImageOf(productId);
-  const commoditySrc = commodityImageOf(name ?? productId);
+  const edible = isEdibleProduct({ name, category });
+  const localSrc = edible && isImageUrl(icon) ? icon : edible ? productImageOf(productId) : null;
+  const commoditySrc = edible ? commodityImageOf(name ?? productId) : null;
   const [fetchedUrl, setFetchedUrl] = useState('');
   const [failed, setFailed] = useState(false);
 
-  const shouldAutoFetch = !localSrc && !commoditySrc && !failed;
+  const shouldAutoFetch = edible && !localSrc && !commoditySrc && !failed;
 
   useEffect(() => {
     if (!shouldAutoFetch) return;

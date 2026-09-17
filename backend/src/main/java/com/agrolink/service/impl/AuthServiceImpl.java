@@ -104,7 +104,7 @@ public class AuthServiceImpl implements AuthService {
 
             try {
                 claims = jwtService.verifyRegistrationToken(request.otpToken());
-            } catch (BadRequestException ex) {
+            } catch (BadRequestException ignored) {
                 throw new BadRequestException(
                         "Email verification is required. Please complete OTP verification first"
                 );
