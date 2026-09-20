@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Car, Eye, EyeOff, IdCard, Loader2, Mail, Phone, Sprout, UserRound } from 'lucide-react';
+import { Car, Eye, EyeOff, IdCard, KeyRound, Loader2, Mail, Phone, Sprout, UserRound } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { FormField } from '@/components/forms';
 import { validateForm, required, isEmail, validatePhoneE164, validatePassword, validateConfirmPassword } from '@/utils/validation';
 import { ROLES, ROLE_LABELS, ROLE_ROUTES } from '@/constants/roles';
 import GoogleSignIn from '@/components/auth/GoogleSignIn';
+import { authService } from '@/services/authService';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 const REGISTRABLE_ROLES = [
@@ -39,8 +40,48 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = React.useState(false);
   const [errors, setErrors] = React.useState({});
   const [submitting, setSubmitting] = React.useState(false);
+  const [otpSending, setOtpSending] = React.useState(false);
+  const [otp, setOtp] = React.useState({ requestId: null, code: '', masked: '', devCode: '' });
 
-  const set = (key) => (e) => setValues((v) => ({ ...v, [key]: e.target.value }));
+  const set = (key) => (e) => {
+    const val = e.target.value;
+    setValues((v) => ({ ...v, [key]: val }));
+    if ((key === 'email' || key === 'phone') && otp.requestId) {
+      setOtp((o) => ({ ...o, requestId: null, code: '', devCode: '' }));
+      setErrors((er) => {
+        const rest = { ...er };
+        delete rest.form;
+        delete rest.otp;
+        return rest;
+      });
+    }
+  };
+
+  const requestOtp = async () => {
+    const pre = validateForm(values, {
+      email: (v) => (isEmail(v) ? null : 'Enter a valid email address'),
+      phone: validatePhoneE164,
+    });
+    if (Object.keys(pre).length) {
+      setErrors(pre);
+      return false;
+    }
+    setOtpSending(true);
+    try {
+      const res = await authService.sendRegistrationOtp({ email: values.email, phone: values.phone });
+      setOtp({ requestId: res.requestId, masked: res.maskedPhone ?? '', devCode: res.otp ?? '', code: '' });
+      toast({
+        title: 'Verification code sent',
+        description: `We sent a verification code to ${res.maskedPhone || values.phone}.`,
+      });
+      return true;
+    } catch (err) {
+      setErrors({ form: err.message });
+      return false;
+    } finally {
+      setOtpSending(false);
+    }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -58,12 +99,28 @@ export default function Register() {
         : {}),
     };
     const validation = validateForm(values, fieldRules);
-    setErrors(validation);
-    if (Object.keys(validation).length) return;
+    if (!otp.requestId) {
+      if (Object.keys(validation).length) {
+        setErrors(validation);
+        return;
+      }
+      await requestOtp();
+      return;
+    }
+    const codeCheck = validateForm(
+      { otp: otp.code },
+      { otp: (v) => (v && v.trim().length >= 4 ? null : 'Enter the 6-digit verification code') }
+    );
+    if (Object.keys(validation).length || Object.keys(codeCheck).length) {
+      setErrors({ ...validation, ...codeCheck });
+      return;
+    }
 
+    setErrors({});
     setSubmitting(true);
     try {
-      const account = await register({ ...values, role });
+      const verification = await authService.verifyRegistrationOtp(otp.requestId, otp.code.trim(), values);
+      const account = await register({ ...values, role }, verification.registrationToken);
       navigate(ROLE_ROUTES[account.role]);
       toast({
         title: t('auth.accountCreated'),
@@ -100,7 +157,7 @@ export default function Register() {
             </p>
           ) : null}
 
-          <GoogleSignIn mode="register" defaultRole={role} onError={(msg) => setErrors((e) => ({ ...e, form: msg }))} />
+          <GoogleSignIn mode="register" defaultRole={role} lockedRole={roleLocked ? role : null} onError={(msg) => setErrors((e) => ({ ...e, form: msg }))} />
 
           <div className="relative flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
             <span className="h-px flex-1 bg-muted" />
@@ -195,9 +252,55 @@ export default function Register() {
             </FormField>
           </div>
 
-          <Button type="submit" className="w-full" size="lg" disabled={submitting}>
-            {submitting ? <Loader2 className="animate-spin" /> : <UserRound className="h-4 w-4" />}
-            {submitting ? t('auth.creatingAccount') : t('auth.createAccountBtn')}
+          {otp.requestId ? (
+            <div className="space-y-2">
+              <FormField label="Verification code" required error={errors.otp} htmlFor="otpCode">
+                <div className="relative">
+                  <KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="otpCode"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={otp.code}
+                    onChange={(e) => setOtp((o) => ({ ...o, code: e.target.value.replace(/\D/g, '') }))}
+                    placeholder="••••••"
+                    className="pl-9 tracking-[0.35em]"
+                    autoFocus
+                  />
+                </div>
+              </FormField>
+              <p className="text-xs text-muted-foreground">
+                We sent a verification code to {otp.masked || values.phone}.{otp.devCode ? <strong> Dev mode code: {otp.devCode}</strong> : null}
+              </p>
+              <button
+                type="button"
+                onClick={requestOtp}
+                disabled={otpSending}
+                className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
+              >
+                {otpSending ? 'Resending…' : 'Resend code'}
+              </button>
+            </div>
+          ) : null}
+
+          <Button type="submit" className="w-full" size="lg" disabled={submitting || otpSending}>
+            {submitting ? (
+              <>
+                <Loader2 className="animate-spin" />
+                {t('auth.creatingAccount')}
+              </>
+            ) : otp.requestId ? (
+              <>
+                <KeyRound className="h-4 w-4" />
+                Verify Code &amp; Create Account
+              </>
+            ) : (
+              <>
+                <UserRound className="h-4 w-4" />
+                {t('auth.createAccountBtn')}
+              </>
+            )}
           </Button>
         </form>
 

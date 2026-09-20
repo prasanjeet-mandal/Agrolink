@@ -1,7 +1,14 @@
 import axios from 'axios';
 
+function sanitizeBaseUrl(value) {
+  if (!value) return '';
+  const v = String(value).trim();
+  if (v.startsWith('//') || /^https?:\/\//i.test(v)) return v;
+  return '';
+}
+
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
+  baseURL: sanitizeBaseUrl(import.meta.env.VITE_API_BASE_URL),
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
 });

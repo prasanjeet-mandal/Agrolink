@@ -55,7 +55,11 @@ export default function Login() {
 
     setSubmitting(true);
     try {
-      const user = await login({ email: values.email, password: values.password });
+      const user = await login({
+        email: values.email,
+        password: values.password,
+        expectedRole: roleLocked ? paramRole : null,
+      });
       const from = location.state?.from?.pathname;
       goToRole(user, from);
       toast({ title: t('auth.welcomeBackToast'), description: t('auth.signedInAs').replace('{name}', user.name), variant: 'success' });
@@ -142,7 +146,7 @@ export default function Login() {
           <span className="h-px flex-1 bg-muted" />
         </div>
 
-        <GoogleSignIn mode="login" defaultRole={googleDefaultRole} onError={(msg) => setErrors((e) => ({ ...e, form: msg }))} />
+        <GoogleSignIn mode="login" defaultRole={googleDefaultRole} lockedRole={roleLocked ? paramRole : null} onError={(msg) => setErrors((e) => ({ ...e, form: msg }))} />
 
         <p className="text-center text-sm text-muted-foreground">
           {t('auth.newToAgrolink')}{' '}
