@@ -24,6 +24,10 @@ yarn-error.log*
 pnpm-debug.log*
 backend/backend-run*.log
 
+# --- Dev scripts runtime state -------------------------------------------------
+# PID files written by scripts/start.sh / start.ps1 (inside logs/pid/)
+*.pid
+
 # --- Java / Spring Boot -------------------------------------------------------
 backend/target/
 !backend/src/main/resources/application.properties

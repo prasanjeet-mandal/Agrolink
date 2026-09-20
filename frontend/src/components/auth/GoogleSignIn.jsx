@@ -49,6 +49,33 @@ function GoogleIcon({ className }) {
 
 let gsiPromise = null;
 
+function currentProtocol() {
+  if (typeof window === 'undefined') return '';
+  return window.location.protocol;
+}
+
+function isGsiSupportedOrigin() {
+  if (typeof window === 'undefined') return true;
+  if (typeof window.isSecureContext === 'boolean') {
+    return window.isSecureContext;
+  }
+  const protocol = currentProtocol();
+  if (protocol === 'https:') return true;
+  if (protocol === 'http:') {
+    const host = (window.location.hostname || '').toLowerCase().replace(/^\[|\]$/g, '');
+    return !host || host === 'localhost' || host === '127.0.0.1' || host === '::1';
+  }
+  return false;
+}
+
+function gsiProtocolNotice() {
+  if (typeof window === 'undefined') return '';
+  if (currentProtocol() === 'file:') {
+    return "This page was opened directly from disk (file://C:/...). Google sign-in doesn't work from a locally opened HTML file. Run the app with the dev server \u2014 in the \u201cfrontend\u201d folder run \u201cnpm run dev\u201d and open http://localhost:5173 \u2014 or open the deployed https:// site.";
+  }
+  return 'Google sign-in needs a secure connection. Open this site over https:// (or from localhost), or continue with email and password instead.';
+}
+
 function loadGsi() {
   if (typeof window !== 'undefined' && window.google?.accounts?.oauth2) {
     return Promise.resolve(window.google);
@@ -70,6 +97,7 @@ export default function GoogleSignIn({
   className,
   disabled,
   defaultRole,
+  lockedRole,
   onError,
 }) {
   const { googleLogin, googleSignupComplete } = useAuth();
@@ -89,6 +117,8 @@ export default function GoogleSignIn({
   const setLoadingForPopup = React.useRef(null);
 
   const notConfigured = !GOOGLE_CLIENT_ID;
+  const protocolUnsupported = !isGsiSupportedOrigin();
+  const protocolNotice = protocolUnsupported ? gsiProtocolNotice() : '';
 
   const openPopup = React.useCallback(() => {
     setError('');
@@ -101,7 +131,8 @@ export default function GoogleSignIn({
     setActive(false);
     try {
       client.requestCode();
-    } catch {
+    } catch (err) {
+      console.warn('[agrolink/google] requestCode failed', err);
       setActive(true);
       setError('Unable to start Google sign-in. Please try again');
     }
@@ -110,10 +141,17 @@ export default function GoogleSignIn({
   const handleCode = React.useCallback(async (code) => {
     setSubmitting(true);
     try {
-      const result = await googleLogin(code);
+      const result = await googleLogin(code, { expectedRole: lockedRole });
       if (result && result.needsRole) {
-        const role = defaultRole && defaultRole !== ROLES.DELIVERY_PARTNER ? defaultRole : null;
+        const role = lockedRole ?? (defaultRole && defaultRole !== ROLES.DELIVERY_PARTNER ? defaultRole : null);
         if (role) {
+          if (role === ROLES.DELIVERY_PARTNER) {
+            setPickedRole(ROLES.DELIVERY_PARTNER);
+            setSignupTicket(result.signupTicket);
+            setRolePickerVisible(true);
+            setError('');
+            return;
+          }
           try {
             const user = await googleSignupComplete(result.signupTicket, { role });
             toast({
@@ -147,7 +185,7 @@ export default function GoogleSignIn({
     } finally {
       setSubmitting(false);
     }
-  }, [googleLogin, googleSignupComplete, navigate, toast, onError, defaultRole]);
+  }, [googleLogin, googleSignupComplete, navigate, toast, onError, defaultRole, lockedRole]);
 
   const completeSignup = React.useCallback(async (e) => {
     e.preventDefault();
@@ -156,7 +194,7 @@ export default function GoogleSignIn({
     setError('');
     try {
       const user = await googleSignupComplete(signupTicket, {
-        role: pickedRole,
+        role: lockedRole ?? pickedRole,
         vehicleNumber,
         drivingLicense,
       });
@@ -173,26 +211,61 @@ export default function GoogleSignIn({
     } finally {
       setSubmitting(false);
     }
-  }, [signupTicket, pickedRole, vehicleNumber, drivingLicense, submitting, googleSignupComplete, navigate, toast, onError]);
+  }, [signupTicket, pickedRole, vehicleNumber, drivingLicense, submitting, googleSignupComplete, navigate, toast, onError, lockedRole]);
 
-  const handleGoogleError = React.useCallback((code) => {
+  const handleGoogleError = React.useCallback((code, description) => {
     const map = {
       popup_closed_by_user: 'Sign-in cancelled',
       popup_failed_to_open: 'Sign-in popup was blocked by your browser',
       opt_out_or_no_session: 'No Google session found',
+      unsupported_protocol: 'Google sign-in needs a secure connection. Open this site over https:// or via localhost, then try again.',
+      invalid_client: 'Google sign-in is not configured correctly. Please contact support.',
+      access_denied: 'You denied access to your Google account.',
     };
-    const message = map[code] ?? 'Google sign-in was cancelled';
+    if (description) console.warn('[agrolink/google]', code, description);
+    const message = code && map[code]
+      ? map[code]
+      : description
+        ? `Google sign-in failed: ${description}`
+        : 'Google sign-in was cancelled';
     setError(message);
     onError?.(message);
   }, [onError]);
 
+  const handlePopupError = React.useCallback(({ type, description }) => {
+    if (setLoadingForPopup.current) setLoadingForPopup.current(false);
+    setActive(true);
+    if (description) console.warn('[agrolink/google] popup', type, description);
+    const message =
+      type === 'popup_failed_to_open'
+        ? 'Sign-in popup was blocked by your browser. Allow pop-ups for this site and try again.'
+        : type === 'popup_closed'
+          ? 'Sign-in popup was closed before completing the flow.'
+          : description
+            ? `Google sign-in could not be started: ${description}`
+            : 'Google sign-in could not be started. Please try again.';
+    setError(message);
+    onError?.(message);
+  }, [onError]);
+
+  const handlersRef = React.useRef({ handleCode, handleGoogleError, handlePopupError });
+  handlersRef.current = { handleCode, handleGoogleError, handlePopupError };
+
   React.useEffect(() => {
-    if (notConfigured) return;
+    if (notConfigured || protocolUnsupported) return;
     let cancelled = false;
     (async () => {
       try {
         const google = await loadGsi();
         if (cancelled) return;
+        console.info(
+          '[agrolink/google]',
+          'origin=', window.location.origin,
+          'protocol=', window.location.protocol,
+          'hostname=', window.location.hostname,
+          'isSecureContext=', window.isSecureContext,
+          'clientId=', `${GOOGLE_CLIENT_ID.slice(0, 12)}...`
+        );
         codeClientRef.current = google.accounts.oauth2.initCodeClient({
           client_id: GOOGLE_CLIENT_ID,
           scope: 'email profile openid',
@@ -202,25 +275,42 @@ export default function GoogleSignIn({
             if (setLoadingForPopup.current) setLoadingForPopup.current(false);
             setError('');
             if (response?.code) {
-              handleCode(response.code);
+              handlersRef.current.handleCode(response.code);
             } else if (response?.error) {
-              handleGoogleError(response.error);
+              handlersRef.current.handleGoogleError(response.error, response.error_description);
             }
+          },
+          error_callback: (error) => {
+            handlersRef.current.handlePopupError(error ?? {});
           },
         });
         setActive(true);
-      } catch {
-        if (!cancelled) setError('Google sign-in is unavailable');
+      } catch (err) {
+        if (!cancelled) {
+          console.warn('[agrolink/google] init failed', err);
+          setError('Google sign-in is unavailable');
+        }
       }
     })();
     return () => { cancelled = true; };
-  }, [notConfigured, handleCode, handleGoogleError]);
+  }, [notConfigured, protocolUnsupported]);
 
   if (notConfigured) return null;
 
   return (
     <div className={cn('space-y-3', className)}>
-      {rolePickerVisible ? (
+      {protocolUnsupported ? (
+        <div className="space-y-3">
+          <p className="flex items-start gap-2 rounded-md border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-sm font-medium text-amber-700 dark:text-amber-300">
+            <span aria-hidden="true" className="mt-0.5">&#9888;</span>
+            {protocolNotice}
+          </p>
+          <Button type="button" variant="outline" className="w-full gap-2" size="lg" disabled>
+            <GoogleIcon className="h-5 w-5" />
+            {mode === 'register' ? 'Continue with Google' : 'Sign in with Google'}
+          </Button>
+        </div>
+      ) : rolePickerVisible ? (
         <form onSubmit={completeSignup} className="space-y-3">
           {error ? (
             <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">
@@ -229,26 +319,30 @@ export default function GoogleSignIn({
           ) : null}
 
           <p className="text-sm font-medium text-muted-foreground">
-            Choose how you want to use Agrolink
+            {lockedRole
+              ? `Sign up as ${ROLE_LABELS[lockedRole]}`
+              : 'Choose how you want to use Agrolink'}
           </p>
 
-          <div className="grid grid-cols-2 gap-2">
-            {PICKER_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setPickedRole(opt.value)}
-                className={cn(
-                  'rounded-lg border p-2 text-left text-sm font-semibold transition-all',
-                  pickedRole === opt.value
-                    ? 'border-primary bg-primary/10 ring-1 ring-primary'
-                    : 'hover:border-primary/40 hover:bg-muted/60'
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          {!lockedRole ? (
+            <div className="grid grid-cols-2 gap-2">
+              {PICKER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setPickedRole(opt.value)}
+                  className={cn(
+                    'rounded-lg border p-2 text-left text-sm font-semibold transition-all',
+                    pickedRole === opt.value
+                      ? 'border-primary bg-primary/10 ring-1 ring-primary'
+                      : 'hover:border-primary/40 hover:bg-muted/60'
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           {pickedRole === ROLES.DELIVERY_PARTNER ? (
             <div className="grid grid-cols-2 gap-3">

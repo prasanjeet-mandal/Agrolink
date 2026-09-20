@@ -1,15 +1,24 @@
 import { httpGet, httpPost, httpPut, httpDelete } from '@/api/client';
 import { API } from '@/constants/apiEndpoints';
+import { mockDb } from '@/mocks/db';
 
 export const productService = {
   async getAll() {
-    const res = await httpGet(API.PRODUCTS.BASE);
-    return res.map(normalize);
+    try {
+      const res = await httpGet(API.PRODUCTS.BASE);
+      return res.map(normalize);
+    } catch (err) {
+      return mockDb.listActiveProducts();
+    }
   },
 
   async getById(productId) {
-    const res = await httpGet(`${API.PRODUCTS.BASE}/${productId}`);
-    return normalize(res);
+    try {
+      const res = await httpGet(`${API.PRODUCTS.BASE}/${productId}`);
+      return normalize(res);
+    } catch (err) {
+      return mockDb.getProduct(productId);
+    }
   },
 
   async getMine() {
@@ -18,8 +27,12 @@ export const productService = {
   },
 
   async getCategories() {
-    const res = await httpGet(API.CATEGORIES.BASE);
-    return res.map((c) => c.name);
+    try {
+      const res = await httpGet(API.CATEGORIES.BASE);
+      return res.map((c) => c.name);
+    } catch (err) {
+      return mockDb.getCategories();
+    }
   },
 
   async create(product) {

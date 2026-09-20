@@ -122,6 +122,105 @@ docker compose up --build
 
 `VITE_API_BASE_URL` in `.env` sets the base URL baked into the frontend bundle at build time.
 
+## Run everything with one command (no Docker)
+
+For everyday development you don't need Docker at all. `scripts/start.sh`
+(start.ps1 on PowerShell) runs all four services locally as background
+processes: AI service → optimization service → Spring Boot backend → React
+frontend, health-checking each one before it starts the next.
+
+```bash
+# one-time setup
+chmod +x scripts/*.sh                      # not needed on PowerShell
+cp .env.example .env                       # edit the values first (already done in a fresh clone)
+cd frontend && npm install && cd ..        # if frontend/node_modules is missing
+
+# unified commands
+./scripts/start.sh            # start everything (Ctrl+C also stops everything)
+./scripts/status.sh           # per-service health table
+./scripts/stop.sh             # stop all AgroLink processes    (logs are kept)
+./scripts/restart.sh          # stop + start
+./scripts/check-dependencies.sh   # verify tools / Python interpreters
+```
+
+Windows users without Git Bash:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\start.ps1
+# status/stop/check are identical but .ps1: use scripts\stop.ps1 equivalents when present
+```
+
+### What it starts
+
+| Service | Command | Port | Log |
+| --- | --- | --- | --- |
+| AI (ML) service | `uvicorn app.main:app` (from `ai-service/ml-service/`) | `8000` | `logs/ai-service.log` |
+| Optimization service | `python run.py` (from `optimization-service/`) | `8001` | `logs/optimization-service.log` |
+| Backend | `./mvnw spring-boot:run` (from `backend/`) | `SERVER_PORT` (default `8080`) | `logs/backend.log` |
+| Frontend | `npm run dev` (from `frontend/`) | `5173` | `logs/frontend.log` |
+
+PID files live in `logs/pid/*.pid` (git-ignored). `stop.sh` and the Ctrl+C
+handler only kill processes we actually started — unrelated processes are
+never touched.
+
+### Python interpreters
+
+Each service prefers its own `.venv`, then the root `.venv`, then `python3`/
+`python` on PATH. The script only uses an interpreter that can import the
+service's modules:
+
+- **AI service** needs `fastapi`, `uvicorn`, `joblib`, `pandas`, `pydantic`.
+- **Optimization service** needs `fastapi`, `uvicorn`, `pydantic`.
+
+```bash
+# if a service has no usable venv, the script prints the exact command, e.g.
+python -m pip install fastapi uvicorn joblib pandas pydantic   # once, global
+# or
+python -m venv ai-service/ml-service/.venv
+```
+
+### Backend configuration (no application.properties)
+
+The backend intentionally ships **without** `application.properties`; every
+setting arrives through environment variables (Spring Boot relaxed binding,
+`@ConfigurationProperties` / `@Value` in the code). The start scripts load
+`.env` and map the project's existing variable names onto the canonical Spring
+names — existing exported shell variables always win:
+
+| `.env` key | Mapped to (only set if not already exported) |
+| --- | --- |
+| `DB_URL` | `SPRING_DATASOURCE_URL` |
+| `DB_USER` / `DB_PASSWORD` | `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` |
+| `DDL_AUTO` | `SPRING_JPA_HIBERNATE_DDL_AUTO` |
+| `JWT_SECRET`, `JWT_EXPIRATION`, `JWT_REGISTRATION_EXPIRATION` | `APP_JWT_SECRET`, `APP_JWT_EXPIRATION`, `APP_JWT_REGISTRATION_EXPIRATION` |
+| `OTP_*` | `APP_OTP_*` (kebab → `APP_OTP_DEV_CODE`, `APP_OTP_MAX_SENDS_PER_WINDOW`, …) |
+| `AI_URL` | `APP_AI_PYTHON_URL` |
+| `CORS_ALLOWED_ORIGINS` | `APP_CORS_ALLOWED_ORIGINS` |
+| `SERVER_PORT` | `server.port` (already bind, unchanged) |
+
+`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` already map directly to `google.*`
+via relaxed binding, so they are left as-is.
+
+### Options
+
+`start.sh` accepts `--no-ai`, `--no-opt`, `--no-backend`, `--no-frontend`,
+`--no-db-check`, `--skip-dep-check`, `--help`. Example:
+
+```bash
+./scripts/start.sh --no-frontend      # dev server already covers the UI
+```
+
+### Troubleshooting
+
+- **Logs are preserved** under `logs/`; an unresponsive service prints the
+  last 15 log lines automatically.
+- **Backend fails health check** → inspect `logs/backend.log` for a Maven
+  build error or a JDBC failure; verify `DB_USER`/`DB_PASSWORD` in `.env`.
+- **Port already in use** → the script refuses to start duplicate services.
+  `./scripts/stop.sh` then `./scripts/status.sh` clears up any stale PIDs.
+- The `--no-db-check` flag skips the MySQL probe (useful when MySQL is
+  already handled elsewhere).
+
 ## Demo accounts
 
 Password for every demo account is `secret`. The login page also has one-tap fill buttons.

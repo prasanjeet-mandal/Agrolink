@@ -675,17 +675,51 @@ function Samachar() {
   );
 }
 
+function MandiUnavailable({ failed, onRetry }) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed bg-card px-6 py-12 text-center">
+      <p className="text-sm font-semibold text-muted-foreground">
+        {failed ? "Prices couldn't be loaded right now." : 'No prices available at the moment.'}
+      </p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-sm font-bold text-primary transition-colors hover:bg-primary/10"
+      >
+        Reload
+      </button>
+    </div>
+  );
+}
+
 export default function Landing() {
   const { t, lang, setLang } = useLanguage();
   const [products, setProducts] = React.useState([]);
+  const [mandiLoading, setMandiLoading] = React.useState(true);
+  const [mandiFailed, setMandiFailed] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const heroRef = React.useRef(null);
   const heroBgRef = React.useRef(null);
   const heroFrame = React.useRef(0);
 
-  React.useEffect(() => {
-    productService.getAll().then(setProducts).catch(() => {});
+  const loadProducts = React.useCallback(() => {
+    setMandiLoading(true);
+    setMandiFailed(false);
+    productService
+      .getAll()
+      .then((list) => {
+        setProducts(list ?? []);
+        setMandiLoading(false);
+      })
+      .catch(() => {
+        setMandiFailed(true);
+        setMandiLoading(false);
+      });
   }, []);
+
+  React.useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   const onHeroMove = React.useCallback((e) => {
     const section = heroRef.current;
@@ -884,20 +918,25 @@ export default function Landing() {
         </Reveal>
       </section>
 
-      {mandiGrid.length ? <MarqueeTicker rows={mandiRows} /> : (
+      {mandiLoading ? (
         <div className="mx-auto max-w-7xl px-4 sm:px-6"><div className="h-16 animate-pulse rounded-xl bg-muted" /></div>
+      ) : mandiGrid.length ? (
+        <MarqueeTicker rows={mandiRows} />
+      ) : (
+        <div className="mx-auto max-w-7xl px-4 sm:px-6"><MandiUnavailable failed={mandiFailed} onRetry={loadProducts} /></div>
       )}
 
       {/* Mandi grid */}
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {mandiGrid.length ? mandiGrid.map((p) => (
-            <Reveal key={p.id}>
-              <Tilt>
-                <MandiCard product={p} />
-              </Tilt>
-            </Reveal>
-          )) : Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-muted" />)}
+          {mandiLoading ? Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-muted" />)
+            : mandiGrid.length ? mandiGrid.map((p) => (
+              <Reveal key={p.id}>
+                <Tilt>
+                  <MandiCard product={p} />
+                </Tilt>
+              </Reveal>
+            )) : <div className="col-span-full"><MandiUnavailable failed={mandiFailed} onRetry={loadProducts} /></div>}
         </div>
         <Reveal delay={100}>
           <MandiIntelligence />
