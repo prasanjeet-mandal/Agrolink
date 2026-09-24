@@ -119,13 +119,27 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - name: Validate deploy secrets
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          : "${DEPLOY_HOST:?DEPLOY_HOST (server hostname/IP) secret is missing - add it under Settings > Secrets and variables > Actions}"
+          : "${DEPLOY_USER:?DEPLOY_USER (SSH username) secret is missing}"
+          : "${DEPLOY_SSH_KEY:?DEPLOY_SSH_KEY (SSH private key) secret is missing}"
+          : "${DEPLOY_PATH:?DEPLOY_PATH (project path on server) secret is missing}"
+          echo "Deploy target: $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH"
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
