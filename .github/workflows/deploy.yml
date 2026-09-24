@@ -127,7 +127,9 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}
           script: |
+            set -e
             cd ${{ secrets.DEPLOY_PATH }}
-            sudo docker compose pull
+            [ -f docker-compose.yml ] || { echo "docker-compose.yml not found in ${{ secrets.DEPLOY_PATH }}"; exit 1; }
+            sudo docker compose pull --ignore-pull-failures
             sudo docker compose up -d --remove-orphans
             sudo docker image prune -f

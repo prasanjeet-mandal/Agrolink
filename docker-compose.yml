@@ -20,6 +20,7 @@ services:
       retries: 10
 
   backend:
+    image: ghcr.io/${GHCR_IMAGE_BASE:-prasanjeet-mandal/agrolink}/agrolink-backend:${GHCR_IMAGE_TAG:-latest}
     build:
       context: ./backend
     container_name: agrolink-backend
@@ -54,6 +55,7 @@ services:
       - "8080:8080"
 
   optimization-service:
+    image: ghcr.io/${GHCR_IMAGE_BASE:-prasanjeet-mandal/agrolink}/agrolink-optimization:${GHCR_IMAGE_TAG:-latest}
     build:
       context: ./optimization-service
     container_name: agrolink-optimization
@@ -62,6 +64,7 @@ services:
       - "8001:8001"
 
   frontend:
+    image: ghcr.io/${GHCR_IMAGE_BASE:-prasanjeet-mandal/agrolink}/agrolink-frontend:${GHCR_IMAGE_TAG:-latest}
     build:
       context: ./frontend
       args:
