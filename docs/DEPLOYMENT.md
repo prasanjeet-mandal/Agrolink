@@ -42,8 +42,14 @@ Workflow: `.github/workflows/deploy.yml`
 | `DEPLOY_HOST`        | Server IP / domain               |
 | `DEPLOY_USER`        | SSH username                     |
 | `DEPLOY_SSH_KEY`     | SSH private key                  |
-| `DEPLOY_PORT`        | SSH port (default 22)            |
+| `DEPLOY_PORT`        | SSH port (defaults to `22` when unset) |
 | `DEPLOY_PATH`        | Project path on server (e.g. `/opt/agrolink`) |
+
+The deploy job runs with `environment: production`, so these secrets must be
+set either at the repository level or inside the `production` environment
+(Settings → Environments → `production` → Environment secrets). If
+`DEPLOY_HOST` is missing, the pipeline fails fast in the
+"Validate deploy secrets" step instead of erroring inside the SSH connection.
 
 GHCR auth uses the automatic `GITHUB_TOKEN` (push permission). No extra secret needed.
 
