@@ -23,6 +23,8 @@ public class JwtService {
 
     private static final String PURPOSE_GOOGLE_SIGNUP = "GOOGLE_SIGNUP";
 
+    private static final String PURPOSE_RESET_PASSWORD = "RESET_PASSWORD";
+
     private static final String PHONE_CLAIM = "phone";
 
     private static final String GOOGLE_ID_CLAIM = "googleId";
@@ -107,6 +109,39 @@ public class JwtService {
     }
 
     public record RegistrationClaims(String email, String phone) {
+    }
+
+    public String generatePasswordResetToken(String email) {
+        Date now = new Date();
+        Date expiration = new Date(
+                now.getTime() + jwtConfig.getRegistrationExpiration()
+        );
+
+        return Jwts.builder()
+                .subject(email)
+                .claim(PURPOSE_CLAIM, PURPOSE_RESET_PASSWORD)
+                .issuedAt(now)
+                .expiration(expiration)
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String verifyPasswordResetToken(String token) {
+        if (token == null || token.isBlank()) {
+            throw new BadRequestException(
+                    "Password reset token is missing or expired. Please request a new one"
+            );
+        }
+
+        Claims claims = extractAllClaims(token);
+
+        if (!PURPOSE_RESET_PASSWORD.equals(claims.get(PURPOSE_CLAIM, String.class))) {
+            throw new BadRequestException(
+                    "Invalid password reset token"
+            );
+        }
+
+        return claims.getSubject();
     }
 
     public String generateGoogleSignupTicket(
