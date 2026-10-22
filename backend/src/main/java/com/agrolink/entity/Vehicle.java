@@ -5,14 +5,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "vehicles")
 @Getter
 @Setter
-@NoArgsConstructor
 public class Vehicle extends BaseEntity {
 
     @Column(nullable = false)
@@ -28,4 +26,7 @@ public class Vehicle extends BaseEntity {
 
     @Column(nullable = false)
     private String status = "AVAILABLE";
+
+    public Vehicle() {
+    }
 }

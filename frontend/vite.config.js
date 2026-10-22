@@ -14,11 +14,13 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined;
+          // More specific chunks first to avoid circular dependencies
           if (/[\\/](recharts|d3-[^\\/]+|react-is|react-smooth|recharts-scale)[\\/]/.test(id)) return 'charts';
           if (id.includes('node_modules/leaflet')) return 'maps';
           if (id.includes('node_modules/axios')) return 'http';
           if (id.includes('node_modules/react-router')) return 'router';
-          if (id.includes('node_modules/react') || id.includes('node_modules/scheduler')) return 'react-vendor';
+          if (id.includes('node_modules/react') || id.includes('node_modules/scheduler') || id.includes('node_modules/prop-types') || id.includes('node_modules/object-assign')) return 'react-vendor';
+          if (id.includes('node_modules/@remix-run') || id.includes('node_modules/@tanstack')) return 'vendor';
           return 'vendor';
         },
       },
