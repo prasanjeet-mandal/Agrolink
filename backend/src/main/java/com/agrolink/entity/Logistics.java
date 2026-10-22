@@ -1,13 +1,28 @@
 package com.agrolink.entity;
+
 import com.agrolink.enums.LogisticsStatus;
 import jakarta.persistence.*;
-import lombok.Getter; import lombok.NoArgsConstructor; import lombok.Setter;
-@Entity @Table(name="logistics")
-@Getter @Setter @NoArgsConstructor
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "logistics")
+@Getter
+@Setter
 public class Logistics extends BaseEntity {
-    @OneToOne(fetch=FetchType.LAZY,optional=false) @JoinColumn(name="order_id",unique=true,nullable=false) private Order order;
-    @ManyToOne(fetch=FetchType.LAZY) @JoinColumn(name="delivery_partner_id") private User deliveryPartner;
-    @Enumerated(EnumType.STRING) @Column(nullable=false) private LogisticsStatus status=LogisticsStatus.CREATED;
+
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_id", unique = true, nullable = false)
+    private Order order;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "delivery_partner_id")
+    private User deliveryPartner;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private LogisticsStatus status = LogisticsStatus.CREATED;
+
     private String pickupLocation;
     private String deliveryLocation;
     private Double distanceKm;
@@ -19,4 +34,7 @@ public class Logistics extends BaseEntity {
     private Double pickupLongitude;
     private Double deliveryLatitude;
     private Double deliveryLongitude;
+
+    public Logistics() {
+    }
 }

@@ -236,23 +236,44 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public String forgotPassword(String email) {
 
-        String normalized = email.trim().toLowerCase();
+        String normalized = email == null ? "" : email.trim().toLowerCase();
 
-                userRepository.existsByEmail(normalized);
+        if (normalized.isBlank()) {
+            throw new BadRequestException("Email is required");
+        }
 
-        return "If an account exists for that email, a reset link has been sent.";
+        if (!userRepository.existsByEmail(normalized)) {
+            return "If an account exists for that email, a reset link has been sent.";
+        }
+
+        String resetToken = jwtService.generatePasswordResetToken(normalized);
+
+        // In production this should send the token via email, but the app is intentionally
+        // designed to return the token in the response so the frontend can complete the flow
+        // without a provider side configuration.
+        return resetToken;
     }
 
     @Override
+    @Transactional
     public String resetPassword(String token, String password) {
 
-                if (token == null || token.isBlank() || password == null || password.length() < 6) {
-                        throw new RuntimeException("A valid reset token and password of at least 6 characters are required");
+        if (token == null || token.isBlank() || password == null || password.length() < 6) {
+            throw new BadRequestException("A valid reset token and password of at least 6 characters are required");
         }
 
-                throw new RuntimeException("Password reset is not configured");
+        String email = jwtService.verifyPasswordResetToken(token);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+
+        return "Password reset successfully.";
     }
 
     @Override
