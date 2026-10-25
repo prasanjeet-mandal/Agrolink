@@ -1,4 +1,3 @@
-export { default as ModulePlaceholder } from './ModulePlaceholder';
 export { default as ProductImage } from './ProductImage';
 export { default as EmptyState } from './EmptyState';
 export { default as Loading } from './Loading';

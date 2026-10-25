@@ -3,6 +3,7 @@ import {
   users, consumerProfiles, producerProfiles, products, orders, shipments,
   payments, priceForecasts, demandForecasts, vehicles, chatbotKnowledge, producerStats,
 } from './data';
+import { filterProducts } from '@/utils/productFilters';
 
 export const MOCK_MODE = true;
 
@@ -43,38 +44,8 @@ function decorateProduct(p) {
 }
 
 function searchProducts({ query = '', category = null, minPrice = null, maxPrice = null, producerType = null, sort = 'relevance' } = {}) {
-  let result = [...products].filter((p) => p.status === 'ACTIVE').map(decorateProduct);
-
-  if (query) {
-    const q = query.toLowerCase();
-    result = result.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.variety.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q)
-    );
-  }
-  if (category) result = result.filter((p) => p.category === category);
-  if (producerType === 'FPO') result = result.filter((p) => p.isFpo);
-  if (producerType === 'FARMER') result = result.filter((p) => !p.isFpo);
-  if (minPrice != null) result = result.filter((p) => p.pricePerUnit >= Number(minPrice));
-  if (maxPrice != null) result = result.filter((p) => p.pricePerUnit <= Number(maxPrice));
-
-  switch (sort) {
-    case 'price_asc':
-      result.sort((a, b) => a.pricePerUnit - b.pricePerUnit);
-      break;
-    case 'price_desc':
-      result.sort((a, b) => b.pricePerUnit - a.pricePerUnit);
-      break;
-    case 'newest':
-      result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      break;
-    default:
-      result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }
-  return result;
+  const activeProducts = products.filter((p) => p.status === 'ACTIVE').map(decorateProduct);
+  return filterProducts(activeProducts, { query, category, minPrice, maxPrice, producerType, sort });
 }
 
 const CHAT_STOP = {
