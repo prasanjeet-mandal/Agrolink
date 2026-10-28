@@ -14,9 +14,37 @@ PRICE_MODEL = BASE_DIR / "app" / "models" / "price" / "price_model.joblib"
 DEMAND_MODEL = BASE_DIR / "app" / "models" / "demand" / "demand_model.joblib"
 SUPPLY_MODEL = BASE_DIR / "app" / "models" / "supply" / "supply_model.joblib"
 
-price_model = joblib.load(PRICE_MODEL)
-demand_model = joblib.load(DEMAND_MODEL)
-supply_model = joblib.load(SUPPLY_MODEL)
+_price_model = None
+_demand_model = None
+_supply_model = None
+
+
+def _load_price_model():
+    global _price_model
+    if _price_model is None:
+        if not PRICE_MODEL.exists():
+            raise FileNotFoundError(f"Price model not found: {PRICE_MODEL}")
+        _price_model = joblib.load(PRICE_MODEL)
+    return _price_model
+
+
+def _load_demand_model():
+    global _demand_model
+    if _demand_model is None:
+        if not DEMAND_MODEL.exists():
+            raise FileNotFoundError(f"Demand model not found: {DEMAND_MODEL}")
+        _demand_model = joblib.load(DEMAND_MODEL)
+    return _demand_model
+
+
+def _load_supply_model():
+    global _supply_model
+    if _supply_model is None:
+        if not SUPPLY_MODEL.exists():
+            raise FileNotFoundError(f"Supply model not found: {SUPPLY_MODEL}")
+        _supply_model = joblib.load(SUPPLY_MODEL)
+    return _supply_model
+
 
 app = FastAPI(
     title="AgroLink ML API",
@@ -176,7 +204,7 @@ def health():
 def predict_price(request: PredictionRequest):
     try:
         df = make_dataframe(request)
-        prediction = price_model.predict(df)[0]
+        prediction = _load_price_model().predict(df)[0]
 
         return {
             "product": request.product,
@@ -192,7 +220,7 @@ def predict_price(request: PredictionRequest):
 def predict_demand(request: PredictionRequest):
     try:
         df = make_dataframe(request)
-        prediction = demand_model.predict(df)[0]
+        prediction = _load_demand_model().predict(df)[0]
 
         return {
             "product": request.product,
@@ -208,7 +236,7 @@ def predict_demand(request: PredictionRequest):
 def predict_supply(request: PredictionRequest):
     try:
         df = make_dataframe(request)
-        prediction = supply_model.predict(df)[0]
+        prediction = _load_supply_model().predict(df)[0]
 
         return {
             "product": request.product,
